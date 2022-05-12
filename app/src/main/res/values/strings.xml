@@ -3,4 +3,5 @@
     <string name="title_home">Progress</string>
     <string name="title_dashboard">Activity</string>
     <string name="title_notifications">Profile</string>
+    <string name="button_name">Start</string>
 </resources>

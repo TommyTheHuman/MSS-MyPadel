@@ -1,4 +1,4 @@
-package com.example.mypadel.ui.dashboard;
+package com.example.mypadel.ui.progress;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,21 +10,21 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.mypadel.databinding.FragmentDashboardBinding;
+import com.example.mypadel.databinding.*;
 
-public class DashboardFragment extends Fragment {
+public class ProgressFragment extends Fragment {
 
-    private FragmentDashboardBinding binding;
+    private FragmentProgressBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        DashboardViewModel dashboardViewModel =
-                new ViewModelProvider(this).get(DashboardViewModel.class);
+        ProgressViewModel dashboardViewModel =
+                new ViewModelProvider(this).get(ProgressViewModel.class);
 
-        binding = FragmentDashboardBinding.inflate(inflater, container, false);
+        binding = FragmentProgressBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        final TextView textView = binding.textDashboard;
+        final TextView textView = binding.textProgress;
         dashboardViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
         return root;
     }
