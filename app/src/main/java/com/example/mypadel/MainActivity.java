@@ -1,5 +1,6 @@
 package com.example.mypadel;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,9 +18,13 @@ import com.example.mypadel.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity{
 
+    private static Context context;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        context = getApplicationContext();
+
 
         com.example.mypadel.databinding.ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -39,7 +44,13 @@ public class MainActivity extends AppCompatActivity{
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
+        StrokeClassification strokeClassification = new StrokeClassification();
+        strokeClassification.classifySession();
+    }
 
+    public static Context getContext(){
+        return context;
+        // or return instance.getApplicationContext();
     }
 
 

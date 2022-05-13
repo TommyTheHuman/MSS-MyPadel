@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.mypadel.DataCollection;
 import com.example.mypadel.R;
 import com.example.mypadel.databinding.*;
 
@@ -34,9 +35,9 @@ public class ActivityFragment extends Fragment {
         binding = FragmentActivityBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-
         return root;
     }
+
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState){
         start_button = (Button) getView().findViewById(R.id.start_button);
@@ -55,6 +56,8 @@ public class ActivityFragment extends Fragment {
                                                     // capisci come resettare
                                                     // chronometer.setBase(0);
                                                 }
+
+                                                //DataCollection.startRecording();
                                             }
                                         }
         );
