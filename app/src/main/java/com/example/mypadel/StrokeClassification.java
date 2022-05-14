@@ -16,7 +16,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class StrokeClassification {
 
@@ -26,7 +28,7 @@ public class StrokeClassification {
     private static final int userWindowSize = 30;
     private static final int userMinInterval = 30;
     private int SIZEOF_FLOAT = 4;
-    private Context context;
+    private final Context context;
 
     public StrokeClassification(){
         context = MainActivity.getContext();
@@ -69,17 +71,21 @@ public class StrokeClassification {
         Log.d(TAG, "Acc peaks: " + strokeDetectedAcc.toString());
         Log.d(TAG, "Gyr peaks: " + strokeDetectedGyr.toString());
 
-
-        for(int i=0; i<1; i++){
+        int[] classifiedStrokes = new int[4];
+        int prediction = 0;
+        for(int i=0; i<strokeDetectedAcc.size(); i++){
             ArrayList<Float> strokeFeatures = featuresFromPeak(strokeDetectedAcc.get(i), strokeDetectedGyr.get(i), xAccRed, yAccRed, zAccRed, xGyrRed, yGyrRed, zGyrRed);
             // classify Stroke fetures
-            //classifyStroke(strokeFeatures);
+            prediction = classifyStroke(strokeFeatures);
+            classifiedStrokes[prediction] += 1;
         }
+
+        Log.d(TAG, "Stroke predicted: " + Arrays.toString(classifiedStrokes));
 
 
     }
-    /*
-    private void classifyStroke(ArrayList<Float> features){
+
+    private int classifyStroke(ArrayList<Float> features){
         try {
 
             TfliteModel model = TfliteModel.newInstance(context);
@@ -87,6 +93,7 @@ public class StrokeClassification {
             // Creates inputs for reference.
             TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 150}, DataType.FLOAT32);
             ByteBuffer byteBuffer = ByteBuffer.allocateDirect(SIZEOF_FLOAT * features.size());
+            byteBuffer.order(ByteOrder.nativeOrder());
 
             for(int i=0; i<features.size(); i++){
                 byteBuffer.putFloat(features.get(i));
@@ -97,16 +104,29 @@ public class StrokeClassification {
             TfliteModel.Outputs outputs = model.process(inputFeature0);
             TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
 
-            Log.d(TAG, "Prediction: " + outputFeature0.toString());
+            float[] confidence = outputFeature0.getFloatArray();
+            float maxConf = 0.0f;
+            int maxIndex = 0;
+            for(int i=0; i<confidence.length; i++){
+                if(confidence[i] > maxConf){
+                    maxConf = confidence[i];
+                    maxIndex = i;
+                }
+            }
+            String[] classes = {"Forehand", "Backhand", "Smash", "Lob"};
+
+            Log.d(TAG, "Prediction: " + classes[maxIndex] + " --- Confidence: " + maxConf);
 
             // Releases model resources if no longer used.
             model.close();
+            return maxIndex;
         } catch (IOException e) {
             // TODO Handle the exception
         }
+        return -1;
     }
 
-     */
+
 
 
 
