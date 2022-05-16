@@ -1,6 +1,7 @@
 package com.example.mypadel;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -44,6 +45,9 @@ public class MainActivity extends AppCompatActivity{
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
+
+
+
         DataCollection collector = new DataCollection();
         collector.startRecording();
     }
@@ -53,5 +57,11 @@ public class MainActivity extends AppCompatActivity{
         // or return instance.getApplicationContext();
     }
 
-
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        Intent intent = new Intent(this, StrokeClassification.class);
+        intent.setAction("stopClassify");
+        startService(intent);
+    }
 }

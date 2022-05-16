@@ -10,6 +10,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyPadel">
+
+        <service
+            android:name=".StrokeClassification"
+            android:enabled="true"
+            android:exported="true">
+        </service>
+
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

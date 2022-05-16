@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
@@ -38,6 +40,7 @@ public class DataCollection extends AppCompatActivity {
     private ChannelClient channelClient;
     private DataList dataList = null;
     private StrokeClassification strokeClassifier = new StrokeClassification();
+    private final Context context;
     //private boolean listen = true; //CHANGE prima era true
     //CHANGE
     MutableLiveData<Boolean> listen = new MutableLiveData<>();
@@ -47,11 +50,15 @@ public class DataCollection extends AppCompatActivity {
     private TextView contatoreView;
     private String fileName;
 
+    public DataCollection() {
+        context = MainActivity.getContext();
+    }
+
     public void startRecording() {
         fileName = "data_collected.txt";
-        File path = getApplicationContext().getExternalFilesDir(null);
+        File path = context.getExternalFilesDir(null);
         Log.i(TAG, path.toString());
-        channelClient = Wearable.getChannelClient(getApplicationContext());
+        channelClient = Wearable.getChannelClient(context);
         myCallback = new MyCallback();
 
         Task<Void> regChannelTask = channelClient.registerChannelCallback(myCallback);
@@ -61,7 +68,7 @@ public class DataCollection extends AppCompatActivity {
         });
 
         //notifico arrivo su smartphone
-        Toast.makeText(getApplicationContext(), "Contatore: " + conta, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "Contatore: " + conta, Toast.LENGTH_SHORT).show();
         //contatoreView = (TextView) findViewById(R.id.contatore);
         //contatoreView.setText(String.valueOf(conta));
         //CHANGE
@@ -71,7 +78,10 @@ public class DataCollection extends AppCompatActivity {
                 receiveData();
             } else {
                 Log.i(TAG, "listen is set to false, finish");
-                strokeClassifier.classifySession();
+
+                Intent intent = new Intent(this, StrokeClassification.class);
+                intent.setAction("Classify");
+                startService(intent);
             }
         });
         //CHANGE
@@ -119,7 +129,7 @@ public class DataCollection extends AppCompatActivity {
 
     protected void logNodeList(){
         //trovare id dei nodi
-        Task<List<Node>> wearableList = Wearable.getNodeClient(getApplicationContext()).getConnectedNodes();
+        Task<List<Node>> wearableList = Wearable.getNodeClient(context).getConnectedNodes();
         wearableList.addOnCompleteListener(task -> {
             if(task.isSuccessful()){
                 Log.i(TAG, "nodi finito");
@@ -141,14 +151,14 @@ public class DataCollection extends AppCompatActivity {
             fw.append(content);
             fw.close();
             // Toast fa vedere un pop up con scritto un messaggio
-            Toast.makeText(getApplicationContext(), "Wrote to file " + fileName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Wrote to file " + fileName, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private String readFromFile(String fileName){
-        File path = getApplicationContext().getFilesDir();
+        File path = context.getFilesDir();
         File readFrom = new File(path, fileName);
         byte[] content = new byte[(int) readFrom.length()];
 

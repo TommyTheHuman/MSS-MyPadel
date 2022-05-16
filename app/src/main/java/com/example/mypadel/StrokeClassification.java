@@ -1,8 +1,12 @@
 package com.example.mypadel;
 
+import android.app.Service;
 import android.content.Context;
+import android.content.Intent;
+import android.os.IBinder;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.mypadel.ml.TfliteModel;
@@ -20,7 +24,7 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class StrokeClassification {
+public class StrokeClassification extends Service {
 
     private static final String TAG = "STROKE CLASSIFICATION";
     private static final int reductionFactor = 4;
@@ -28,10 +32,34 @@ public class StrokeClassification {
     private static final int userWindowSize = 30;
     private static final int userMinInterval = 30;
     private int SIZEOF_FLOAT = 4;
-    private final Context context;
+    private Context context;
 
-    public StrokeClassification(){
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public void onCreate(){
+        super.onCreate();
         context = MainActivity.getContext();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId){
+        super.onStartCommand(intent, flags, startId);
+        if(intent.getAction() != null && intent.getAction().equals("Classify")){
+            Runnable toRun = () -> {
+                classifySession();
+            };
+            Thread run = new Thread(toRun);
+            run.start();
+        } else if(intent.getAction() != null && intent.getAction().equals("stopClassify")){
+            stopSelf();
+        }
+        return START_STICKY;
     }
 
     public void classifySession(){
@@ -125,12 +153,6 @@ public class StrokeClassification {
         }
         return -1;
     }
-
-
-
-
-
-
 
     private void readSession(String fileName, ArrayList<Float> xAcc, ArrayList<Float> yAcc, ArrayList<Float> zAcc, ArrayList<Float> xGyr, ArrayList<Float> yGyr, ArrayList<Float> zGyr) {
         File path = context.getExternalFilesDir(null);
@@ -264,6 +286,4 @@ public class StrokeClassification {
         }
         return peakIndexes;
     }
-
-
 }
