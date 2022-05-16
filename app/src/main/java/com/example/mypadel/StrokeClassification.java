@@ -35,7 +35,7 @@ public class StrokeClassification {
     }
 
     public void classifySession(){
-        String fileName = "DIRITTI.txt";
+        String fileName = "data_collected.txt";
         ArrayList<Float> xAcc = new ArrayList<>();
         ArrayList<Float> yAcc = new ArrayList<>();
         ArrayList<Float> zAcc = new ArrayList<>();
@@ -133,7 +133,7 @@ public class StrokeClassification {
 
 
     private void readSession(String fileName, ArrayList<Float> xAcc, ArrayList<Float> yAcc, ArrayList<Float> zAcc, ArrayList<Float> xGyr, ArrayList<Float> yGyr, ArrayList<Float> zGyr) {
-        File path = context.getFilesDir();
+        File path = context.getExternalFilesDir(null);
         File readFrom = new File(path, fileName);
         //ArrayList<String> accelerometer = new ArrayList<String>();
 

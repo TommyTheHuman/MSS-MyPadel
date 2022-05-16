@@ -84,27 +84,25 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
             if("Start".contentEquals(button.getText())) {
                 registerSensorListener();
 
-                //start the mobile application by sending a message
-
-                Log.d(TAG, "entrato nel listener");
-
-                sendMsg("/hello-world-wear", "Start Activity");
+                //send a message to start gathering data
 
                 button.setText(R.string.button_stop);
             }
             else {
                 unregisterSensorListener();
                 button.setText(R.string.button_start);
-                sendPacket();
+
+                //send a specific message to start the classification
+                sendPacket(true);
             }
         });
-        //button.setEnabled(false);
+        button.setEnabled(false);
 
         //ambient mode
         ambientController = AmbientModeSupport.attach(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         //
-        /*
+
         //creazione canale
         ChannelClient channelClient = Wearable.getChannelClient(getApplicationContext());
         Task<ChannelClient.Channel> ch_task = channelClient.openChannel(smartphoneID, communicationPath);
@@ -128,22 +126,7 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
                 Log.i(TAG, "Fallimento: " + e.toString());
             }
         });
-        */
-    }
 
-
-    private void sendMsg( final String path, final String text ) {
-
-        Log.d(TAG, "PROVO A MANDARE");
-        setSmartphoneID();
-
-        Task<Integer> sendMessageTask = Wearable.getMessageClient(getApplicationContext()).sendMessage(smartphoneID, path, text.getBytes());
-
-        sendMessageTask.addOnCompleteListener(task -> {
-            if(task.isSuccessful()){
-                Log.d(TAG, "Message Sent");
-            }
-        });
     }
 
 
@@ -178,23 +161,21 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
         /*Log.i(TAG, String.valueOf(sensorEvent.timestamp) + ": ");
         for (float f : sensorEvent.values)
             Log.i(TAG, String.valueOf(f));*/
-        /*if(sensorEvent.sensor.getType() != Sensor.TYPE_GYROSCOPE && sensorEvent.sensor.getType() != Sensor.TYPE_ACCELEROMETER)
+        if(sensorEvent.sensor.getType() != Sensor.TYPE_GYROSCOPE && sensorEvent.sensor.getType() != Sensor.TYPE_ACCELEROMETER)
             return;
         dataList.addElement(new SensedData(sensorEvent));
         if(dataList.getList().get(dataList.getList().size() - 1).timestamp - dataList.getList().get(0).timestamp > FIVE_SECONDS_IN_NANOS)
             //Log.i(TAG, "invio " + dataList.getList().get(dataList.getList().size() - 1).timestamp + "|" + dataList.getList().get(0).timestamp);
-            sendPacket();
-
-         */
+            sendPacket(false);
     }
 
-    private void sendPacket() {
+    private void sendPacket(Boolean end) {
         conta += dataList.getList().size();
         Log.i(TAG, "number of sent packets = " + conta);
         Log.i(TAG, "data: " + dataList.getList().get(0).timestamp + "|" + dataList.getList().get(0).values[1]);
         TextView tv = (TextView) findViewById(R.id.counter);
         tv.setText(String.valueOf(conta));
-        ByteBuffer tosend = createByteBuffer();
+        ByteBuffer tosend = createByteBuffer(end);
         try {
             outputStream.write(tosend.array());
         } catch (IOException e) {
@@ -204,13 +185,16 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
         dataList.getList().clear();
     }
 
-    private ByteBuffer createByteBuffer(){
+    private ByteBuffer createByteBuffer(Boolean end){
         ByteBuffer bb = ByteBuffer.allocate((SIZEOF_LONG + SIZEOF_FLOAT * 4) * dataList.getList().size());
         for(SensedData sd: dataList.getList()){
             if (sd.dataSource == 0)
                 bb.putFloat(0);
             else if (sd.dataSource == 1)
                 bb.putFloat(1);
+            else if (end == true){
+                bb.putFloat(2);
+            }
             bb.putLong(sd.timestamp);
             for (float val : sd.values)
                 bb.putFloat(val);

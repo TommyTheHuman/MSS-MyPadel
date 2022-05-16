@@ -29,7 +29,7 @@ public class DataCollection extends AppCompatActivity {
     private String TAG = "SMARTPHONE";
     private String wearableID = "da5c1706";
     private String communicationPath = "MyPadel";
-    private String storagePath = "/storage/emulated/0/Android/data/com.example.channelmobilewearable/files";
+    private String storagePath = "/storage/emulated/0/Android/data/com.example.mypadel/files";
     private int conta = 0;
     private ChannelClient.Channel channel;
     private InputStream inputStream;
@@ -37,6 +37,7 @@ public class DataCollection extends AppCompatActivity {
     private MyCallback myCallback;
     private ChannelClient channelClient;
     private DataList dataList = null;
+    private StrokeClassification strokeClassifier = new StrokeClassification();
     //private boolean listen = true; //CHANGE prima era true
     //CHANGE
     MutableLiveData<Boolean> listen = new MutableLiveData<>();
@@ -70,7 +71,7 @@ public class DataCollection extends AppCompatActivity {
                 receiveData();
             } else {
                 Log.i(TAG, "listen is set to false, finish");
-                finish();
+                strokeClassifier.classifySession();
             }
         });
         //CHANGE
@@ -95,6 +96,11 @@ public class DataCollection extends AppCompatActivity {
             StringBuilder content = new StringBuilder();
             for(int i = 0; i < letti; i+=24){
                 dataType = bb.getFloat();
+                if(dataType == 2.0f){
+                    //end of the session, now we can classify
+                    listen.setValue(false);
+                    break;
+                }
                 content.append(dataType);
                 content.append(";");
                 content.append(bb.getLong());
