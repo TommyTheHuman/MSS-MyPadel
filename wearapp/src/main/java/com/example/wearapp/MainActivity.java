@@ -3,6 +3,7 @@ package com.example.wearapp;
 import static android.content.Context.SENSOR_SERVICE;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -104,6 +105,8 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
         //
 
         //creazione canale
+        //commentato perchè lo fa il service (da controllare)
+        /*
         ChannelClient channelClient = Wearable.getChannelClient(getApplicationContext());
         Task<ChannelClient.Channel> ch_task = channelClient.openChannel(smartphoneID, communicationPath);
         ch_task.continueWithTask(new Continuation<ChannelClient.Channel, Task<OutputStream>>() {
@@ -125,7 +128,11 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
             public void onFailure(@NonNull Exception e) {
                 Log.i(TAG, "Fallimento: " + e.toString());
             }
-        });
+        });*/
+        //starting ChannelHandler service
+        Intent intent = new Intent(this, ChannelHandler.class);
+        intent.setAction("create_channel");
+        startService(intent);
 
     }
 
