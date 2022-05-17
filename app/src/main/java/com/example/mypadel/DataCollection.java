@@ -158,13 +158,13 @@ public class DataCollection extends AppCompatActivity {
 
     private class MyCallback extends ChannelClient.ChannelCallback {
         @Override
-        public void onChannelOpened(@NonNull ChannelClient.Channel c){
+        public void onChannelOpened(@NonNull ChannelClient.Channel c) {
             super.onChannelOpened(c);
             Log.i(TAG, "A channel has been established");
             channel = c;
             Task<InputStream> in_task = channelClient.getInputStream(channel);
             in_task.addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     inputStream = task.getResult();
                     Log.i(TAG, "Input stream ok");
                     //CHANGE

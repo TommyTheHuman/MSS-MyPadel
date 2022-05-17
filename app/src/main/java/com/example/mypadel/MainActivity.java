@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import com.example.mypadel.ui.progress.ProgressFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,7 +17,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.mypadel.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity {
 
     private static Context context;
 
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity{
         return context;
         // or return instance.getApplicationContext();
     }
+
 
 
 }

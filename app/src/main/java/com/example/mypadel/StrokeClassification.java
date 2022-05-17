@@ -2,11 +2,13 @@ package com.example.mypadel;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.mypadel.ml.TfliteModel;
 
+import org.checkerframework.checker.units.qual.A;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
@@ -14,15 +16,23 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.HashMap;
 
 public class StrokeClassification {
 
     private static final String TAG = "STROKE CLASSIFICATION";
+    private static String filePath;
     private static final int reductionFactor = 4;
     private static final int userThreshold = 10;
     private static final int userWindowSize = 30;
@@ -32,29 +42,54 @@ public class StrokeClassification {
 
     public StrokeClassification(){
         context = MainActivity.getContext();
+        filePath = context.getFilesDir().toString();
+
     }
 
     public void classifySession(){
         String fileName = "DIRITTI.txt";
+
+        // List of sensors' values per axis
         ArrayList<Float> xAcc = new ArrayList<>();
         ArrayList<Float> yAcc = new ArrayList<>();
         ArrayList<Float> zAcc = new ArrayList<>();
         ArrayList<Float> xGyr = new ArrayList<>();
         ArrayList<Float> yGyr = new ArrayList<>();
         ArrayList<Float> zGyr = new ArrayList<>();
-        readSession(fileName, xAcc, yAcc, zAcc, xGyr, yGyr, zGyr);
-        Log.d(TAG, "Dim tot rows: " + String.valueOf(xAcc.size()));
+
+        // List of x and y positions from the log
+        ArrayList<Float> xPositions = new ArrayList<>();
+        ArrayList<Float> yPositions = new ArrayList<>();
+
+        // List of x and y positions of strokes
+        ArrayList<Float> xStrokes = new ArrayList<>();
+        ArrayList<Float> yStrokes = new ArrayList<>();
+
+        // List of timestamps of position log
+        ArrayList<Long> timestampPositions = new ArrayList<>();
+        // List of timestamps of strokes
+        ArrayList<Long> strokeTimestampPositions = new ArrayList<>();
+        // List of all timestamps derived from sensors
+        ArrayList<Long> allTimestamp = new ArrayList<>();
+        // List of strokes predicted
+        ArrayList<Integer> strokesPredicted = new ArrayList<>();
+        // List of strokes predicted associated with log values
+        ArrayList<Integer> strokesTypeLog = new ArrayList<>();
 
 
+        // Read data from latest match recorded
+        readSession(fileName, xAcc, yAcc, zAcc, xGyr, yGyr, zGyr, allTimestamp);
+
+        // Frequency reduction of data
         ArrayList<Float> xAccRed = frequencyReduction(xAcc, reductionFactor);
         ArrayList<Float> yAccRed = frequencyReduction(yAcc, reductionFactor);
         ArrayList<Float> zAccRed = frequencyReduction(zAcc, reductionFactor);
         ArrayList<Float> xGyrRed = frequencyReduction(xGyr, reductionFactor);
         ArrayList<Float> yGyrRed = frequencyReduction(yGyr, reductionFactor);
         ArrayList<Float> zGyrRed = frequencyReduction(zGyr, reductionFactor);
-        Log.d(TAG, "Dim tot reducted row: " + String.valueOf(xAccRed.size()));
+        ArrayList<Long> timestampRed = frequencyReductionTimestamp(allTimestamp, reductionFactor);
 
-
+        // Compute gradient of each axis of accelerometer and gyroscope, helpful to detect peaks
         ArrayList<Float> gradXAcc = calculateGradient(xAccRed);
         ArrayList<Float> gradYAcc = calculateGradient(yAccRed);
         ArrayList<Float> gradZAcc = calculateGradient(zAccRed);
@@ -62,27 +97,123 @@ public class StrokeClassification {
         ArrayList<Float> gradYGyr = calculateGradient(yGyrRed);
         ArrayList<Float> gradZGyr = calculateGradient(zGyrRed);
 
+        // Compute the norma of gradient along axis
         ArrayList<Float> accNorm = norm(gradXAcc, gradYAcc, gradZAcc);
         ArrayList<Float> gyrNorm = norm(gradXGyr, gradYGyr, gradZGyr);
 
+        // Detection of strokes, returns a list containing the indexes of peaks (express in sample number)
         ArrayList<Integer> strokeDetectedAcc = strokeDetectionAcc(accNorm, userThreshold, userWindowSize, userMinInterval);
         ArrayList<Integer> strokeDetectedGyr = strokeDetectionGyr(strokeDetectedAcc, gyrNorm);
 
-        Log.d(TAG, "Acc peaks: " + strokeDetectedAcc.toString());
-        Log.d(TAG, "Gyr peaks: " + strokeDetectedGyr.toString());
+        // Compute strokes' timestamp using the indexes of peaks
+        ArrayList<Long> timestampStrokes = takeStrokeTimestamp(timestampRed, strokeDetectedAcc);
 
-        int[] classifiedStrokes = new int[4];
+        // Classification of strokes of the session
+        int[] totStrokesClassified = new int[4];
         int prediction = 0;
         for(int i=0; i<strokeDetectedAcc.size(); i++){
+            // Extract stroke's features
             ArrayList<Float> strokeFeatures = featuresFromPeak(strokeDetectedAcc.get(i), strokeDetectedGyr.get(i), xAccRed, yAccRed, zAccRed, xGyrRed, yGyrRed, zGyrRed);
-            // classify Stroke fetures
+            // Classify Stroke features
             prediction = classifyStroke(strokeFeatures);
-            classifiedStrokes[prediction] += 1;
+
+            totStrokesClassified[prediction] += 1;
+            strokesPredicted.add(prediction);
         }
 
-        Log.d(TAG, "Stroke predicted: " + Arrays.toString(classifiedStrokes));
+        // Extract x and y values from the log
+        readLogPositioning(xPositions, yPositions);
+
+        // Attach timestamp for each x and y values from the log
+        createTimestampPositions(timestampPositions, timestampStrokes, xPositions.size());
+
+        // Attach strokes to the log position computed by uwb sensor
+        computeStrokesCoordinates(timestampStrokes, strokesPredicted, xPositions, yPositions, xStrokes, yStrokes, strokeTimestampPositions, timestampPositions, strokesTypeLog);
+
+        // Get today date
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        String todayDate = dtf.format(LocalDateTime.now());
+
+        // Write the current session info to the progress file
+        writeToFile("progress.txt", Arrays.toString(totStrokesClassified)+ ";" +
+                todayDate + ";"+ "02:12" +";" + xStrokes + ";" + yStrokes + ";" + strokesTypeLog + "\n");
+
+        //Log.d(TAG, "Stroke predicted: " + Arrays.toString(totStrokesClassified));
+
+    }
 
 
+    private ArrayList<Long> takeStrokeTimestamp(ArrayList<Long> allTimestamp, ArrayList<Integer> indexStrokes){
+        ArrayList<Long> temp = new ArrayList<>();
+        for(int i=0; i<indexStrokes.size(); i++){
+            Log.d(TAG, String.valueOf(indexStrokes.get(i)));
+            temp.add(allTimestamp.get(indexStrokes.get(i)));
+        }
+        return temp;
+    }
+
+    // Creates timestamp for log positions
+    private void createTimestampPositions(ArrayList<Long> timestampPositions, ArrayList<Long> timestampStrokes, int lengthPos){
+        Long initialTimestamp = timestampStrokes.get(0);
+        for(int i=0; i<lengthPos; i++) {
+            // 100000000L because the positions log are sent every 0.1 seconds
+            timestampPositions.add(initialTimestamp + (i * 100000000L));
+        }
+    }
+
+
+    private void readLogPositioning(ArrayList<Float> xPositions, ArrayList<Float> yPositions){
+        String fileName = "log_position_puliti.txt";
+        File path = context.getFilesDir();
+        File readFrom = new File(path, fileName);
+        int count = 0;
+        try (BufferedReader br = new BufferedReader(new FileReader(readFrom))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                count++;
+                String[] parts = line.split(",");
+                xPositions.add(Float.parseFloat(parts[3]));
+                yPositions.add(Float.parseFloat(parts[4]));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    // Associate strokes to positions
+    private void computeStrokesCoordinates(ArrayList<Long> timestampStrokes, ArrayList<Integer> strokesType,ArrayList<Float> xPos, ArrayList<Float> yPos,
+                                    ArrayList<Float> xStrokes, ArrayList<Float> yStrokes, ArrayList<Long> strokeTimestampPositions,
+                                           ArrayList<Long> timestampPositions, ArrayList<Integer> strokesTypeLog){
+
+        Long lastTimestampPositions = timestampPositions.get(timestampPositions.size()-1);
+        int indexClosest = 0;
+
+        for(int i=0; i<timestampStrokes.size(); i++){
+            if(timestampStrokes.get(i) > lastTimestampPositions){
+                Log.d(TAG, "Log positioning più corto della partita");
+                break;
+            }
+            indexClosest = findNearest(timestampPositions, timestampStrokes.get(i));
+            strokeTimestampPositions.add(timestampPositions.get(indexClosest));
+            xStrokes.add(xPos.get(indexClosest));
+            yStrokes.add(yPos.get(indexClosest));
+            strokesTypeLog.add(strokesType.get(i));
+        }
+    }
+
+    // Return the index of timestamp of positions log closest to the timestamp stroke
+    private int findNearest(ArrayList<Long> timestamp, Long timestampReference){
+        long distance = Math.abs(timestamp.get(0) - timestampReference);
+        int index = 0;
+        for(int i = 1; i < timestamp.size(); i++){
+            long cdistance = Math.abs(timestamp.get(i) - timestampReference);
+            if(cdistance < distance){
+                index = i;
+                distance = cdistance;
+            }
+        }
+        return index;
     }
 
     private int classifyStroke(ArrayList<Float> features){
@@ -115,7 +246,7 @@ public class StrokeClassification {
             }
             String[] classes = {"Forehand", "Backhand", "Smash", "Lob"};
 
-            Log.d(TAG, "Prediction: " + classes[maxIndex] + " --- Confidence: " + maxConf);
+            //Log.d(TAG, "Prediction: " + classes[maxIndex] + " --- Confidence: " + maxConf);
 
             // Releases model resources if no longer used.
             model.close();
@@ -126,22 +257,31 @@ public class StrokeClassification {
         return -1;
     }
 
+    private void writeToFile(String fileName, String content){
+        try {
+            File f = new File(filePath, fileName);
+            FileWriter fw = new FileWriter(f, true);
+            fw.append(content);
+            fw.close();
+
+            Toast.makeText(context, "Wrote to file " + fileName, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 
-
-
-
-
-    private void readSession(String fileName, ArrayList<Float> xAcc, ArrayList<Float> yAcc, ArrayList<Float> zAcc, ArrayList<Float> xGyr, ArrayList<Float> yGyr, ArrayList<Float> zGyr) {
+    private void readSession(String fileName, ArrayList<Float> xAcc, ArrayList<Float> yAcc,
+                             ArrayList<Float> zAcc, ArrayList<Float> xGyr, ArrayList<Float> yGyr, ArrayList<Float> zGyr, ArrayList<Long> timestamp) {
         File path = context.getFilesDir();
         File readFrom = new File(path, fileName);
-        //ArrayList<String> accelerometer = new ArrayList<String>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(readFrom))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(";");
                 if (Float.parseFloat(parts[0]) == 0.0f) {
+                    timestamp.add(Long.parseLong(parts[1]));
                     xAcc.add(Float.parseFloat(parts[2]));
                     yAcc.add(Float.parseFloat(parts[3]));
                     zAcc.add(Float.parseFloat(parts[4]));
@@ -162,6 +302,22 @@ public class StrokeClassification {
         ArrayList<Float> dataReducted = new ArrayList<>();
         for(int i = 0; i < data.size(); i = i + reductionFactor){
             Float sum = 0.0f;
+            if(i + reductionFactor > data.size()){
+                return dataReducted;
+            }
+            for(int j = 0; j < reductionFactor; j++){
+                sum += data.get(i+j);
+            }
+            dataReducted.add(sum/reductionFactor);
+
+        }
+        return dataReducted;
+    }
+
+    private ArrayList<Long> frequencyReductionTimestamp(ArrayList<Long> data, int reductionFactor){
+        ArrayList<Long> dataReducted = new ArrayList<>();
+        for(int i = 0; i < data.size(); i = i + reductionFactor){
+            Long sum = 0L;
             if(i + reductionFactor > data.size()){
                 return dataReducted;
             }

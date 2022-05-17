@@ -15,11 +15,25 @@
         android:id="@+id/navigation_dashboard"
         android:name="com.example.mypadel.ui.activity.ActivityFragment"
         android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_progress" />
+        tools:layout="@layout/fragment_progress" >
+        <action
+            android:id="@+id/action_navigation_dashboard_to_resultFragment"
+            app:destination="@id/resultFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_notifications"
         android:name="com.example.mypadel.ui.profile.ProfileFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/resultFragment"
+        android:name="com.example.mypadel.ResultFragment"
+        android:label="Match Summary"
+        tools:layout="@layout/result_fragment" >
+        <argument
+            android:name="infoActivity"
+            app:argType="string"
+            android:defaultValue="default" />
+    </fragment>
 </navigation>

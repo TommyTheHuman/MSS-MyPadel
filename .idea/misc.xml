@@ -19,9 +19,13 @@
         <entry key="app/src/main/res/drawable/ic_dashboard_black_24dp.xml" value="0.1945" />
         <entry key="app/src/main/res/drawable/ic_notifications_black_24dp.xml" value="0.1945" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/fragment_activity.xml" value="0.20606884057971014" />
         <entry key="app/src/main/res/layout/fragment_dashboard.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_notifications.xml" value="0.17097264437689969" />
+        <entry key="app/src/main/res/layout/fragment_progress.xml" value="0.2824431242766204" />
+        <entry key="app/src/main/res/layout/result_fragment.xml" value="0.2" />
         <entry key="app/src/main/res/menu/bottom_nav_menu.xml" value="0.3645833333333333" />
+        <entry key="wearapp/src/main/res/layout/activity_main.xml" value="1.174342105263158" />
       </map>
     </option>
   </component>

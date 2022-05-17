@@ -13,10 +13,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 
 import com.example.mypadel.DataCollection;
 import com.example.mypadel.R;
 import com.example.mypadel.databinding.*;
+
+import java.util.ArrayList;
 
 public class ActivityFragment extends Fragment {
 
@@ -24,6 +27,7 @@ public class ActivityFragment extends Fragment {
     private Chronometer chronometer;
     // variable to keep the state of activity -> false = not started, true = started
     private Boolean activityState = false;
+    private final String fileNameProgress = "progressi.txt";
 
     private FragmentActivityBinding binding;
 
@@ -61,8 +65,16 @@ public class ActivityFragment extends Fragment {
                                             }
                                         }
         );
+        // da fare quando la sessione viene stoppata sulo smartwatch
+        //        Navigation.findNavController(view).navigate(R.id.resultFragment);l
 
     }
+    /*
+    public ArrayList<String> readProgressFromFile(){
+
+    }
+
+     */
 
     @Override
     public void onDestroyView() {
