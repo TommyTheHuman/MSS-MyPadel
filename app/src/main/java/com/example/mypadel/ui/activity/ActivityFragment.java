@@ -78,7 +78,6 @@ public class ActivityFragment extends Fragment {
                     start_button.setText("START");
                     activityState = false;
                     long elapsedSec = (SystemClock.elapsedRealtime() - chronometer.getBase())/1000;
-                    Log.i("DIO CANE", String.valueOf(elapsedSec));
                     doResetBaseTime();
                     chronometer.stop();
                     counter = 5;
