@@ -1,6 +1,5 @@
 package com.example.wearapp;
 
-
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 

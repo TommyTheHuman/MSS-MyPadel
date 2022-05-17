@@ -1,3 +1,11 @@
 <resources>
-    <string name="hello_world">Hello Round World!</string>
+    <string name="app_name">wearApp</string>
+    <string name="button_start">Start</string>
+    <string name="button_stop">Stop</string>
+    <string name="start_counter">0</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">Hello Square World!</string>
 </resources>

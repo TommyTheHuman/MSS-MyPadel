@@ -1,10 +1,17 @@
 package com.example.mypadel;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Chronometer;
+import android.widget.TextView;
 
 import com.example.mypadel.ui.progress.ProgressFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -20,6 +27,10 @@ import com.example.mypadel.databinding.ActivityMainBinding;
 public class MainActivity extends AppCompatActivity {
 
     private static Context context;
+    private Chronometer chronometer;
+    private BroadcastReceiver broadcastReceiver;
+    private final String TAG = "MainActivity";
+    private long sessionDuration = 0l;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +56,11 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
-        StrokeClassification strokeClassification = new StrokeClassification();
-        strokeClassification.classifySession();
+        chronometer = (Chronometer) findViewById(R.id.chronometer);
+
+        Intent intent = new Intent(this, DataCollection.class);
+        intent.setAction("start_recording");
+        startService(intent);
     }
 
     public static Context getContext(){
@@ -54,6 +68,49 @@ public class MainActivity extends AppCompatActivity {
         // or return instance.getApplicationContext();
     }
 
+    private void registerBroadcastReceiver(){
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.i(TAG, "onReceive della broadcast");
+                if(intent.hasExtra("Chronometer")){
+                    String value = intent.getStringExtra("Chronometer");
+                    if(value.equals("start")){
+                        doResetBaseTime();
+                        chronometer.start();
+                    }else{
+                        chronometer.stop();
+                        sessionDuration = SystemClock.elapsedRealtime() - chronometer.getBase();
+                        doResetBaseTime();
 
+                        Intent intentClass = new Intent(context, StrokeClassification.class);
+                        intentClass.setAction("Classify");
+                        intentClass.putExtra("Duration", sessionDuration);
+                        startService(intentClass);
 
+                    }
+                }
+            }
+        };
+        registerReceiver(broadcastReceiver, new IntentFilter("UpdateGui"));
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        Intent intent = new Intent(this, StrokeClassification.class);
+        intent.setAction("stopClassify");
+        startService(intent);
+    }
+
+    private void doResetBaseTime()  {
+        // Returns milliseconds since system boot, including time spent in sleep.
+        long elapsedRealtime = SystemClock.elapsedRealtime();
+        // Set the time that the count-up timer is in reference to.
+        this.chronometer.setBase(elapsedRealtime);
+    }
+
+    public long getSessionDuration(){
+        return sessionDuration;
+    }
 }

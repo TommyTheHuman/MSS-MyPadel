@@ -1,9 +1,13 @@
 package com.example.mypadel;
 
+import android.app.Service;
 import android.content.Context;
+import android.content.Intent;
+import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.mypadel.ml.TfliteModel;
@@ -29,7 +33,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 
-public class StrokeClassification {
+public class StrokeClassification extends Service {
 
     private static final String TAG = "STROKE CLASSIFICATION";
     private static String filePath;
@@ -38,16 +42,42 @@ public class StrokeClassification {
     private static final int userWindowSize = 30;
     private static final int userMinInterval = 30;
     private int SIZEOF_FLOAT = 4;
-    private final Context context;
+    private Context context;
+    private long sessionDuration;
 
-    public StrokeClassification(){
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public void onCreate(){
+        super.onCreate();
         context = MainActivity.getContext();
         filePath = context.getFilesDir().toString();
 
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId){
+        super.onStartCommand(intent, flags, startId);
+        if(intent.getAction() != null && intent.getAction().equals("Classify")){
+            sessionDuration = intent.getLongExtra("Duration", 0l);
+            Runnable toRun = () -> {
+                classifySession();
+            };
+            Thread run = new Thread(toRun);
+            run.start();
+        } else if(intent.getAction() != null && intent.getAction().equals("stopClassify")){
+            stopSelf();
+        }
+        return START_STICKY;
+    }
+
     public void classifySession(){
-        String fileName = "DIRITTI.txt";
+        String fileName = "data_collected.txt";
 
         // List of sensors' values per axis
         ArrayList<Float> xAcc = new ArrayList<>();
@@ -273,8 +303,9 @@ public class StrokeClassification {
 
     private void readSession(String fileName, ArrayList<Float> xAcc, ArrayList<Float> yAcc,
                              ArrayList<Float> zAcc, ArrayList<Float> xGyr, ArrayList<Float> yGyr, ArrayList<Float> zGyr, ArrayList<Long> timestamp) {
-        File path = context.getFilesDir();
+        File path = context.getExternalFilesDir(null);
         File readFrom = new File(path, fileName);
+        //ArrayList<String> accelerometer = new ArrayList<String>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(readFrom))) {
             String line;

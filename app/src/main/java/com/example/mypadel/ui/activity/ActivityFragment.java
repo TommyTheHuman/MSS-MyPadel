@@ -1,6 +1,8 @@
 package com.example.mypadel.ui.activity;
 
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +48,7 @@ public class ActivityFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState){
         start_button = (Button) getView().findViewById(R.id.start_button);
         chronometer = (Chronometer) getView().findViewById(R.id.chronometer);
+
         start_button.setOnClickListener(new View.OnClickListener() {
                                             @Override
                                             public void onClick(View view) {
@@ -65,16 +68,8 @@ public class ActivityFragment extends Fragment {
                                             }
                                         }
         );
-        // da fare quando la sessione viene stoppata sulo smartwatch
-        //        Navigation.findNavController(view).navigate(R.id.resultFragment);l
 
     }
-    /*
-    public ArrayList<String> readProgressFromFile(){
-
-    }
-
-     */
 
     @Override
     public void onDestroyView() {
