@@ -69,6 +69,10 @@ public class ChannelHandler extends Service {
                         Toast.makeText(getApplicationContext(), "More than 1 node are connected", Toast.LENGTH_SHORT).show();
                         //button.setEnabled(false);
                         //button.setText("ERROR");
+                        Intent intent = new Intent(this, MainActivity.class);
+                        intent.setAction("update_button");
+                        intent.putExtra("button", false);
+                        getApplicationContext().sendBroadcast(intent);
                     }
                 } else {
                     Log.d(TAG, "Id of the smartphone obtained succesfully");
@@ -84,6 +88,10 @@ public class ChannelHandler extends Service {
                     Log.i(TAG, "successo");
                     outputStream = (newOutputStream);
                     //button.setEnabled(true);
+                    Log.i(TAG, "avvio bottone");
+                    Intent intent = new Intent("update_button");
+                    intent.putExtra("button", true);
+                    getApplicationContext().sendBroadcast(intent);
                     Log.i(TAG, "Successo");
                 }).addOnFailureListener(e -> Log.i(TAG, "Fallimento: " + e.toString()));
             }
@@ -100,9 +108,6 @@ public class ChannelHandler extends Service {
             Log.i(TAG, "Successo");
         }).addOnFailureListener(e -> Log.i(TAG, "Fallimento: " + e.toString()));*/
 
-        Intent intent = new Intent(this, SensorHandler.class);
-        intent.setAction("start_sensors");
-        startService(intent);
     }
 
     @Override

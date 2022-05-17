@@ -3,7 +3,10 @@ package com.example.wearapp;
 import static android.content.Context.SENSOR_SERVICE;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -72,32 +75,43 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
     private ChannelClient.Channel channel = null;
     private OutputStream outputStream;
     private String storagePath = "/storage/emulated/0/Android/data/com.example.wearApp/files";
+    private BroadcastReceiver broadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //Log.i(TAG, String.valueOf(getApplicationContext().getExternalFilesDir(null)));
-        sensorSetup();
-        setSmartphoneID();
+        //commentato perche lo fa il service
+        /*sensorSetup();
+        setSmartphoneID();*/
         button = (Button) findViewById(R.id.button);
         button.setOnClickListener(view -> {
             if("Start".contentEquals(button.getText())) {
-                registerSensorListener();
+                //commento perche lo fa il service (da controllare)
+                //registerSensorListener();
 
+                Intent intent = new Intent(this, SensorHandler.class);
+                intent.setAction("start_sensors");
+                startService(intent);
                 //send a message to start gathering data
 
                 button.setText(R.string.button_stop);
             }
             else {
-                unregisterSensorListener();
                 button.setText(R.string.button_start);
 
                 //send a specific message to start the classification
-                sendPacket(true);
+                //commento perche lo fa il service (da controllare)
+                //sendPacket(true);
+                //unregisterSensorListener();
+                Intent intent = new Intent(this, SensorHandler.class);
+                intent.setAction("stop_sensors");
+                startService(intent);
             }
         });
         button.setEnabled(false);
+        Log.i(TAG, "listener bottone ok");
 
         //ambient mode
         ambientController = AmbientModeSupport.attach(this);
@@ -134,6 +148,27 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
         intent.setAction("create_channel");
         startService(intent);
 
+
+        //registro broadcast receiver per ricevere intent utili a aggiornamento UI
+        registerBroadcastReceiver();
+    }
+
+    private void registerBroadcastReceiver(){
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.i(TAG, "onReceive della broadcast");
+                if(intent.getAction() != null && intent.getAction().equals("update_button")){
+                    Log.i(TAG, "dentro if");
+                    boolean enabling = intent.getBooleanExtra("button", false);
+                    button = (Button) findViewById(R.id.button);
+                    button.setEnabled(enabling);
+                    TextView tv = (TextView) findViewById(R.id.counter);
+                    tv.setText("55");
+                }
+            }
+        };
+        registerReceiver(broadcastReceiver, new IntentFilter("update_button"));
     }
 
 
@@ -264,7 +299,10 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
     protected void onPause(){
         Log.i(TAG, "in pausa");
         super.onPause();
-        unregisterSensorListener();
+        //unregisterSensorListener();
+        Intent intent = new Intent(this, SensorHandler.class);
+        intent.setAction("stop_sensors");
+        startService(intent);
     }
 
     @Override
