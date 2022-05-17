@@ -26,6 +26,7 @@ public class ActivityFragment extends Fragment {
     private Chronometer chronometer;
     // variable to keep the state of activity -> false = not started, true = started
     private Boolean activityState = false;
+    private int counter = 5;
 
     private FragmentActivityBinding binding;
 
@@ -53,16 +54,26 @@ public class ActivityFragment extends Fragment {
                     activityState = true;
                     //doResetBaseTime();
 
-                    chronometer.setBase(SystemClock.elapsedRealtime() + 10000);
-                    chronometer.setCountDown(true);
-                    chronometer.start();
-                    while((SystemClock.elapsedRealtime() - chronometer.getBase()) != 0){
-                        chronometer.setCountDown(true);
-                    }
-                    /*chronometer.setCountDown(false);
-                    chronometer.setBase(SystemClock.elapsedRealtime());
 
-                    chronometer.start();*/
+                    chronometer.setOnChronometerTickListener(new Chronometer.OnChronometerTickListener() {
+                        @Override
+                        public void onChronometerTick(Chronometer chronometer) {
+                            if(counter <= 0) {
+                                chronometer.stop();
+                                chronometer.setOnChronometerTickListener(null);
+                                doResetBaseTime();
+                                chronometer.start();
+                            }
+                            chronometer.setText(counter + "");
+                            counter--;
+                        }
+                    });
+                    chronometer.start();
+
+
+                    //chronometer.setBase(SystemClock.elapsedRealtime());
+
+                    //chronometer.start();
                 } else {
                     start_button.setText("START");
                     activityState = false;
@@ -70,6 +81,7 @@ public class ActivityFragment extends Fragment {
                     Log.i("DIO CANE", String.valueOf(elapsedSec));
                     doResetBaseTime();
                     chronometer.stop();
+                    counter = 5;
                 }
             }
         });

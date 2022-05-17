@@ -8,6 +8,7 @@ import androidx.lifecycle.Observer;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Chronometer;
 import android.widget.TextView;
@@ -50,6 +51,8 @@ public class DataCollection extends AppCompatActivity {
     private int SIZEOF_FLOAT = 4;
     private TextView contatoreView;
     private String fileName;
+    private int counter = 5;
+    private Chronometer chronometer;
 
     public DataCollection() {
         context = MainActivity.getContext();
@@ -79,12 +82,31 @@ public class DataCollection extends AppCompatActivity {
                 receiveData();
 
                 //start chronometer
+                chronometer = (Chronometer) findViewById(R.id.chronometer);
+
+                chronometer.setOnChronometerTickListener(new Chronometer.OnChronometerTickListener() {
+                    @Override
+                    public void onChronometerTick(Chronometer chronometer) {
+                        if(counter <= 0) {
+                            chronometer.stop();
+                            chronometer.setOnChronometerTickListener(null);
+                            doResetBaseTime();
+                            chronometer.start();
+                        }
+                        chronometer.setText(counter + "");
+                        counter--;
+                    }
+                });
+                chronometer.start();
 
 
             } else {
                 Log.i(TAG, "listen is set to false, finish");
 
                 //stop chronometer
+                doResetBaseTime();
+                chronometer.stop();
+                counter = 5;
 
                 Intent intent = new Intent(this, StrokeClassification.class);
                 intent.setAction("Classify");
@@ -92,6 +114,13 @@ public class DataCollection extends AppCompatActivity {
             }
         });
         //CHANGE
+    }
+
+    private void doResetBaseTime()  {
+        // Returns milliseconds since system boot, including time spent in sleep.
+        long elapsedRealtime = SystemClock.elapsedRealtime();
+        // Set the time that the count-up timer is in reference to.
+        this.chronometer.setBase(elapsedRealtime);
     }
 
     private void receiveData(){
