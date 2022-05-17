@@ -45,9 +45,6 @@ public class MainActivity extends AppCompatActivity{
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
-
-
-
         DataCollection collector = new DataCollection();
         collector.startRecording();
     }

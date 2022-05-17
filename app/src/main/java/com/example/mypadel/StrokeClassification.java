@@ -109,8 +109,6 @@ public class StrokeClassification extends Service {
         }
 
         Log.d(TAG, "Stroke predicted: " + Arrays.toString(classifiedStrokes));
-
-
     }
 
     private int classifyStroke(ArrayList<Float> features){
@@ -204,7 +202,6 @@ public class StrokeClassification extends Service {
             Float floatNum = num.floatValue();
             totGrad.add(floatNum);
         }
-
         return totGrad;
     }
 

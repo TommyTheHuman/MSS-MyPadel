@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Chronometer;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,8 +77,14 @@ public class DataCollection extends AppCompatActivity {
             if(aBoolean) {
                 Log.i(TAG, "changed");
                 receiveData();
+
+                //start chronometer
+
+
             } else {
                 Log.i(TAG, "listen is set to false, finish");
+
+                //stop chronometer
 
                 Intent intent = new Intent(this, StrokeClassification.class);
                 intent.setAction("Classify");

@@ -1,6 +1,8 @@
 package com.example.mypadel.ui.activity;
 
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,26 +44,43 @@ public class ActivityFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState){
         start_button = (Button) getView().findViewById(R.id.start_button);
         chronometer = (Chronometer) getView().findViewById(R.id.chronometer);
+
         start_button.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View view) {
-                                                if(!activityState) {
-                                                    start_button.setText("STOP");
-                                                    activityState = true;
-                                                    chronometer.start();
-                                                } else {
-                                                    start_button.setText("START");
-                                                    activityState = false;
-                                                    // salva tutte cose in progressi
-                                                    // capisci come resettare
-                                                    // chronometer.setBase(0);
-                                                }
 
-                                                //DataCollection.startRecording();
-                                            }
-                                        }
-        );
+            public void onClick(View v) {
+                if(!activityState) {
+                    start_button.setText("STOP");
+                    activityState = true;
+                    //doResetBaseTime();
 
+                    chronometer.setBase(SystemClock.elapsedRealtime() + 10000);
+                    chronometer.setCountDown(true);
+                    chronometer.start();
+                    while((SystemClock.elapsedRealtime() - chronometer.getBase()) != 0){
+                        chronometer.setCountDown(true);
+                    }
+                    /*chronometer.setCountDown(false);
+                    chronometer.setBase(SystemClock.elapsedRealtime());
+
+                    chronometer.start();*/
+                } else {
+                    start_button.setText("START");
+                    activityState = false;
+                    long elapsedSec = (SystemClock.elapsedRealtime() - chronometer.getBase())/1000;
+                    Log.i("DIO CANE", String.valueOf(elapsedSec));
+                    doResetBaseTime();
+                    chronometer.stop();
+                }
+            }
+        });
+
+    }
+
+    private void doResetBaseTime()  {
+        // Returns milliseconds since system boot, including time spent in sleep.
+        long elapsedRealtime = SystemClock.elapsedRealtime();
+        // Set the time that the count-up timer is in reference to.
+        this.chronometer.setBase(elapsedRealtime);
     }
 
     @Override

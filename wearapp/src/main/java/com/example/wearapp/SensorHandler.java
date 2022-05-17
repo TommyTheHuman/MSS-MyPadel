@@ -107,12 +107,12 @@ public class SensorHandler extends Service implements SensorEventListener {
                 bb.putFloat(0);
             else if (sd.dataSource == 1)
                 bb.putFloat(1);
-            else if (end == true){
-                bb.putFloat(2);
-            }
             bb.putLong(sd.timestamp);
             for (float val : sd.values)
                 bb.putFloat(val);
+        }
+        if (end == true){
+            bb.putFloat(2);
         }
         return bb;
     }
