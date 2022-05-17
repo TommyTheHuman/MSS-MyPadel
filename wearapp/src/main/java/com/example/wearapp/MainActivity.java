@@ -300,9 +300,9 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
         Log.i(TAG, "in pausa");
         super.onPause();
         //unregisterSensorListener();
-        Intent intent = new Intent(this, SensorHandler.class);
+        /*Intent intent = new Intent(this, SensorHandler.class);
         intent.setAction("stop_sensors");
-        startService(intent);
+        startService(intent);*/
     }
 
     @Override

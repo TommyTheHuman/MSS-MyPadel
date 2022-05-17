@@ -211,6 +211,7 @@ public class DataCollection extends AppCompatActivity {
     private class MyCallback extends ChannelClient.ChannelCallback {
         @Override
         public void onChannelOpened(@NonNull ChannelClient.Channel c){
+            Log.i(TAG, "onChannelOpened");
             super.onChannelOpened(c);
             Log.i(TAG, "A channel has been established");
             channel = c;

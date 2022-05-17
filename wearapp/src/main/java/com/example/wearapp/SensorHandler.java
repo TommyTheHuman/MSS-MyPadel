@@ -23,7 +23,7 @@ public class SensorHandler extends Service implements SensorEventListener {
     private SensorManager sm;
     private Sensor accelerometer;
     private Sensor gyroscope;
-    private Thread executingThread;
+    private Thread executingThread = null;
 
     private final long FIVE_SECONDS_IN_NANOS = 5000000000L;
     private final int SIZEOF_LONG = 8;
@@ -51,7 +51,8 @@ public class SensorHandler extends Service implements SensorEventListener {
             executingThread.start();
             Log.i(TAG, "thread partito");
         } else if(intent.getAction() != null && intent.getAction().equals("stop_sensors")) {
-            executingThread.stop();
+            if(executingThread != null)
+                executingThread.stop();
             sendPacket(true);
         }
 

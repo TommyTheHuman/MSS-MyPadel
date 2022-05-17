@@ -61,7 +61,7 @@ public class ChannelHandler extends Service {
                         if (!n.getDisplayName().contains("WATCH")) {
                             smartphoneID = n.getId();
                             trovato = true;
-                            Log.i(TAG, "Id of the smartphone obtained succesfully");
+                            Log.i(TAG, "Id of the smartphone obtained succesfully: " + n.getDisplayName());
                             break;
                         }
                     }
@@ -75,7 +75,7 @@ public class ChannelHandler extends Service {
                         getApplicationContext().sendBroadcast(intent);
                     }
                 } else {
-                    Log.d(TAG, "Id of the smartphone obtained succesfully");
+                    Log.d(TAG, "Id of the smartphone obtained succesfully: " + list.get(0).getDisplayName());
                     smartphoneID = list.get(0).getId();
                 }
                 //setting up the channel
@@ -85,14 +85,13 @@ public class ChannelHandler extends Service {
                     channel = task2.getResult();
                     return channelClient.getOutputStream(channel);
                 }).addOnSuccessListener(newOutputStream -> {
-                    Log.i(TAG, "successo");
                     outputStream = (newOutputStream);
                     //button.setEnabled(true);
                     Log.i(TAG, "avvio bottone");
                     Intent intent = new Intent("update_button");
                     intent.putExtra("button", true);
                     getApplicationContext().sendBroadcast(intent);
-                    Log.i(TAG, "Successo");
+                    Log.i(TAG, "Channel established succesfully");
                 }).addOnFailureListener(e -> Log.i(TAG, "Fallimento: " + e.toString()));
             }
         });
