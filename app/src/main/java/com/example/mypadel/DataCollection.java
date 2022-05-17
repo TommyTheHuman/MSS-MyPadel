@@ -1,13 +1,16 @@
 package com.example.mypadel;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Chronometer;
@@ -28,7 +31,7 @@ import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-public class DataCollection extends AppCompatActivity {
+public class DataCollection extends Service {
 
     private String TAG = "SMARTPHONE";
     private String wearableID = "da5c1706";
@@ -42,7 +45,7 @@ public class DataCollection extends AppCompatActivity {
     private ChannelClient channelClient;
     private DataList dataList = null;
     private StrokeClassification strokeClassifier = new StrokeClassification();
-    private final Context context;
+    private Context context;
     //private boolean listen = true; //CHANGE prima era true
     //CHANGE
     MutableLiveData<Boolean> listen = new MutableLiveData<>();
@@ -53,9 +56,28 @@ public class DataCollection extends AppCompatActivity {
     private String fileName;
     private int counter = 5;
     private Chronometer chronometer;
+    private Boolean firstTime = true;
 
-    public DataCollection() {
+    @Override
+    public void onCreate() {
         context = MainActivity.getContext();
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId){
+
+        if(intent.getAction() != null && intent.getAction().equals("start_recording")) {
+            startRecording();
+        }
+
+        return START_STICKY;
+
     }
 
     public void startRecording() {
@@ -71,16 +93,14 @@ public class DataCollection extends AppCompatActivity {
                 Log.i(TAG, "The callback has been registered");
         });
 
-        //notifico arrivo su smartphone
-        Toast.makeText(context, "Contatore: " + conta, Toast.LENGTH_SHORT).show();
+
         //contatoreView = (TextView) findViewById(R.id.contatore);
         //contatoreView.setText(String.valueOf(conta));
         //CHANGE
         listen.observeForever(aBoolean -> {
             if(aBoolean) {
                 Log.i(TAG, "changed");
-                receiveData();
-
+                /*
                 //start chronometer
                 chronometer = (Chronometer) findViewById(R.id.chronometer);
 
@@ -96,32 +116,32 @@ public class DataCollection extends AppCompatActivity {
                         chronometer.setText(counter + "");
                         counter--;
                     }
-                });
-                chronometer.start();
+                });*/
 
+
+                Runnable toRun = () -> {
+                    receiveData();
+                    Log.i(TAG, "thread creato");
+                };
+                Thread executingThread = new Thread(toRun);
+                executingThread.start();
+                Log.i(TAG, "thread partito");
 
             } else {
                 Log.i(TAG, "listen is set to false, finish");
 
                 //stop chronometer
-                doResetBaseTime();
-                chronometer.stop();
-                counter = 5;
+                Intent intent1 = new Intent("UpdateGui");
+                intent1.putExtra("Chronometer", "stop");
+                getApplicationContext().sendBroadcast(intent1);
 
-                Intent intent = new Intent(this, StrokeClassification.class);
-                intent.setAction("Classify");
-                startService(intent);
+
             }
         });
         //CHANGE
     }
 
-    private void doResetBaseTime()  {
-        // Returns milliseconds since system boot, including time spent in sleep.
-        long elapsedRealtime = SystemClock.elapsedRealtime();
-        // Set the time that the count-up timer is in reference to.
-        this.chronometer.setBase(elapsedRealtime);
-    }
+
 
     private void receiveData(){
         while(listen.getValue()) {
@@ -136,6 +156,16 @@ public class DataCollection extends AppCompatActivity {
                 //listen = false;
                 //CHANGE
             }
+
+            //start the chronometer after we received the firtst batch of data
+
+            if(firstTime){
+                Intent intent = new Intent("UpdateGui");
+                intent.putExtra("Chronometer", "start");
+                getApplicationContext().sendBroadcast(intent);
+                firstTime = false;
+            }
+
             Log.i(TAG, "number of packets = " + letti/24);
             ByteBuffer bb = ByteBuffer.wrap(array);
             float dataType;

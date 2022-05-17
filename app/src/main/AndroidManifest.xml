@@ -17,6 +17,12 @@
             android:exported="true">
         </service>
 
+        <service
+            android:name=".DataCollection"
+            android:enabled="true"
+            android:exported="true">
+        </service>
+
 
         <activity
             android:name=".MainActivity"

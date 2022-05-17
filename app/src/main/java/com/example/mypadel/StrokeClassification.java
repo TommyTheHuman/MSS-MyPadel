@@ -33,6 +33,7 @@ public class StrokeClassification extends Service {
     private static final int userMinInterval = 30;
     private int SIZEOF_FLOAT = 4;
     private Context context;
+    private long sessionDuration;
 
 
     @Nullable
@@ -51,6 +52,7 @@ public class StrokeClassification extends Service {
     public int onStartCommand(Intent intent, int flags, int startId){
         super.onStartCommand(intent, flags, startId);
         if(intent.getAction() != null && intent.getAction().equals("Classify")){
+            sessionDuration = intent.getLongExtra("Duration", 0l);
             Runnable toRun = () -> {
                 classifySession();
             };
