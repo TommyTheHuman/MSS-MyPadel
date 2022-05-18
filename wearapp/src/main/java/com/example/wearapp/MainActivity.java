@@ -15,9 +15,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Message;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,6 +78,7 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
     private OutputStream outputStream;
     private String storagePath = "/storage/emulated/0/Android/data/com.example.wearApp/files";
     private BroadcastReceiver broadcastReceiver;
+    private Chronometer chronometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,12 +98,15 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
                 intent.setAction("start_sensors");
                 startService(intent);
                 //send a message to start gathering data
-
+                chronometer = (Chronometer) findViewById(R.id.chronometer);
+                doResetBaseTime();
+                chronometer.start();
                 button.setText(R.string.button_stop);
             }
             else {
-                button.setText(R.string.button_start);
-
+                button.setText(R.string.communication_end);
+                chronometer.stop();
+                button.setEnabled(false);
                 //send a specific message to start the classification
                 //commento perche lo fa il service (da controllare)
                 //sendPacket(true);
@@ -108,6 +114,7 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
                 Intent intent = new Intent(this, SensorHandler.class);
                 intent.setAction("stop_sensors");
                 startService(intent);
+
             }
         });
         button.setEnabled(false);
@@ -163,15 +170,20 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
                     boolean enabling = intent.getBooleanExtra("button", false);
                     button = (Button) findViewById(R.id.button);
                     button.setEnabled(enabling);
-                    TextView tv = (TextView) findViewById(R.id.counter);
-                    tv.setText("55");
                 }
             }
         };
         registerReceiver(broadcastReceiver, new IntentFilter("update_button"));
     }
 
-
+    private void doResetBaseTime()  {
+        // Returns milliseconds since system boot, including time spent in sleep.
+        long elapsedRealtime = SystemClock.elapsedRealtime();
+        // Set the time that the count-up timer is in reference to.
+        Log.i(TAG, "1");
+        chronometer.setBase(elapsedRealtime);
+        Log.i(TAG, "2");
+    }
 
     private void sensorSetup(){
         sm = (SensorManager)getSystemService(SENSOR_SERVICE);
@@ -215,8 +227,6 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
         conta += dataList.getList().size();
         Log.i(TAG, "number of sent packets = " + conta);
         Log.i(TAG, "data: " + dataList.getList().get(0).timestamp + "|" + dataList.getList().get(0).values[1]);
-        TextView tv = (TextView) findViewById(R.id.counter);
-        tv.setText(String.valueOf(conta));
         ByteBuffer tosend = createByteBuffer(end);
         try {
             outputStream.write(tosend.array());
@@ -303,6 +313,18 @@ public class MainActivity extends FragmentActivity implements SensorEventListene
         /*Intent intent = new Intent(this, SensorHandler.class);
         intent.setAction("stop_sensors");
         startService(intent);*/
+    }
+
+    protected void onDestroy(){
+        super.onDestroy();
+        unregisterReceiver(broadcastReceiver);
+        Intent intent = new Intent(this, SensorHandler.class);
+        intent.setAction("stop_sensors");
+        startService(intent);
+
+        intent = new Intent(this, ChannelHandler.class);
+        intent.setAction("stop_service");
+        startService(intent);
     }
 
     @Override

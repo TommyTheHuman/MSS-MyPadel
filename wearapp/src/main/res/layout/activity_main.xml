@@ -29,13 +29,14 @@
                 android:text="@string/button_start"
                 android:textSize="24sp" />
 
-            <TextView
-                android:id="@+id/counter"
+            <Chronometer
+                android:id="@+id/chronometer"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:text="@string/start_counter"
+                android:layout_height="46dp"
+                android:layout_marginBottom="257dp"
                 android:textAlignment="center"
-                android:textAppearance="@android:style/TextAppearance.Material.Large" />
+                android:textColor="#FFFFFF"
+                android:textSize="20sp" />
 
         </LinearLayout>
 

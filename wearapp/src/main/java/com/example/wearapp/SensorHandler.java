@@ -47,7 +47,8 @@ public class SensorHandler extends Service implements SensorEventListener {
             Log.i(TAG, "thread creato");
             Log.i(TAG, "thread partito");
         } else if(intent.getAction() != null && intent.getAction().equals("stop_sensors")) {
-            unregisterSensorListener();
+            if(sm != null)
+                unregisterSensorListener();
             sendPacket(true);
         }
 
