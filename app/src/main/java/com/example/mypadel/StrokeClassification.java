@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 public class StrokeClassification extends Service {
 
@@ -183,9 +184,16 @@ public class StrokeClassification extends Service {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         String todayDate = dtf.format(LocalDateTime.now());
 
+        String dur = String.format("%02d:%02d:%02d",
+                TimeUnit.MILLISECONDS.toHours(sessionDuration),
+                TimeUnit.MILLISECONDS.toMinutes(sessionDuration) -
+                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(sessionDuration)), // The change is in this line
+                TimeUnit.MILLISECONDS.toSeconds(sessionDuration) -
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(sessionDuration)));
+
         // Write the current session info to the progress file
         writeToFile("progress.txt", Arrays.toString(totStrokesClassified)+ ";" +
-                todayDate + ";"+ "02:12" +";" + xStrokes + ";" + yStrokes + ";" + strokesTypeLog + "\n");
+                todayDate + ";"+ dur +";" + xStrokes + ";" + yStrokes + ";" + strokesTypeLog + "\n");
         Log.i(TAG, "writeToFile");
 
         //Log.d(TAG, "Stroke predicted: " + Arrays.toString(totStrokesClassified));

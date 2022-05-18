@@ -71,6 +71,7 @@ public class ProgressFragment extends Fragment {
         });
          //final TextView textView = binding.textProgress;
         //dashboardViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        //Navigation.findNavController(this.getView()).navigate(R.id.navigation_dashboard);
         return root;
     }
 

@@ -26,6 +26,8 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.mypadel.databinding.ActivityMainBinding;
 
+import java.util.concurrent.TimeUnit;
+
 public class MainActivity extends AppCompatActivity {
 
     private static Context context;
@@ -58,8 +60,6 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
-        /*View rootView = ((Activity)context).getWindow().getDecorView().findViewById(android.R.id.content);
-        Navigation.findNavController(rootView).navigate(R.id.navigation_dashboard);*/
 
         Intent intent = new Intent(this, DataCollection.class);
         intent.setAction("start_recording");
