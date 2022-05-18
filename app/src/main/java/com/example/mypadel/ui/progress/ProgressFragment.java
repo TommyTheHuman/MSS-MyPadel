@@ -75,7 +75,7 @@ public class ProgressFragment extends Fragment {
     }
 
     private ArrayList<String> readProgressFromFile(ArrayList<String> infoMatches){
-        File path = context.getFilesDir();
+        File path = context.getExternalFilesDir(null);
         File readFrom = new File(path, fileName);
         ArrayList<String> oldSessions = new ArrayList<String>();
         try (BufferedReader br = new BufferedReader(new FileReader(readFrom))) {

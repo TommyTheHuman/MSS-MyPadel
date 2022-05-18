@@ -1,5 +1,6 @@
 package com.example.mypadel;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
@@ -45,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
+                R.id.navigation_dashboard, R.id.navigation_home, R.id.navigation_notifications)
                 .build();
         //NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavHostFragment navHostFragment;
@@ -56,11 +58,14 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
-        chronometer = (Chronometer) findViewById(R.id.chronometer);
+        /*View rootView = ((Activity)context).getWindow().getDecorView().findViewById(android.R.id.content);
+        Navigation.findNavController(rootView).navigate(R.id.navigation_dashboard);*/
 
         Intent intent = new Intent(this, DataCollection.class);
         intent.setAction("start_recording");
         startService(intent);
+
+        //registerBroadcastReceiver();
     }
 
     public static Context getContext(){
@@ -68,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         // or return instance.getApplicationContext();
     }
 
+    /*
     private void registerBroadcastReceiver(){
         broadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -76,8 +82,10 @@ public class MainActivity extends AppCompatActivity {
                 if(intent.hasExtra("Chronometer")){
                     String value = intent.getStringExtra("Chronometer");
                     if(value.equals("start")){
-                        doResetBaseTime();
+                        //doResetBaseTime();
+                        Log.i(TAG, "pre start");
                         chronometer.start();
+                        Log.i(TAG, "post start");
                     }else{
                         chronometer.stop();
                         sessionDuration = SystemClock.elapsedRealtime() - chronometer.getBase();
@@ -93,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         registerReceiver(broadcastReceiver, new IntentFilter("UpdateGui"));
-    }
+    }*/
 
     @Override
     public void onDestroy(){
@@ -107,7 +115,9 @@ public class MainActivity extends AppCompatActivity {
         // Returns milliseconds since system boot, including time spent in sleep.
         long elapsedRealtime = SystemClock.elapsedRealtime();
         // Set the time that the count-up timer is in reference to.
-        this.chronometer.setBase(elapsedRealtime);
+        Log.i(TAG, "1");
+        chronometer.setBase(elapsedRealtime);
+        Log.i(TAG, "2");
     }
 
     public long getSessionDuration(){

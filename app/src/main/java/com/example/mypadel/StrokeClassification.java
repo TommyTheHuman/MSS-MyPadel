@@ -56,7 +56,7 @@ public class StrokeClassification extends Service {
     public void onCreate(){
         super.onCreate();
         context = MainActivity.getContext();
-        filePath = context.getFilesDir().toString();
+        filePath = context.getExternalFilesDir(null).toString();
 
     }
 
@@ -64,6 +64,7 @@ public class StrokeClassification extends Service {
     public int onStartCommand(Intent intent, int flags, int startId){
         super.onStartCommand(intent, flags, startId);
         if(intent.getAction() != null && intent.getAction().equals("Classify")){
+            Log.i(TAG, "dio servizio");
             sessionDuration = intent.getLongExtra("Duration", 0l);
             Runnable toRun = () -> {
                 classifySession();
@@ -77,6 +78,7 @@ public class StrokeClassification extends Service {
     }
 
     public void classifySession(){
+        Log.i(TAG, "dentro classifySession()");
         String fileName = "data_collected.txt";
 
         // List of sensors' values per axis
@@ -108,19 +110,25 @@ public class StrokeClassification extends Service {
 
 
         // Read data from latest match recorded
+        Log.i(TAG, "pre readSession()");
         readSession(fileName, xAcc, yAcc, zAcc, xGyr, yGyr, zGyr, allTimestamp);
+        Log.i(TAG, "post readSession() allTimestamp = " + allTimestamp.size());
 
         // Frequency reduction of data
         ArrayList<Float> xAccRed = frequencyReduction(xAcc, reductionFactor);
+        Log.i(TAG, "pre frequencyReduction()");
         ArrayList<Float> yAccRed = frequencyReduction(yAcc, reductionFactor);
         ArrayList<Float> zAccRed = frequencyReduction(zAcc, reductionFactor);
         ArrayList<Float> xGyrRed = frequencyReduction(xGyr, reductionFactor);
         ArrayList<Float> yGyrRed = frequencyReduction(yGyr, reductionFactor);
         ArrayList<Float> zGyrRed = frequencyReduction(zGyr, reductionFactor);
         ArrayList<Long> timestampRed = frequencyReductionTimestamp(allTimestamp, reductionFactor);
+        Log.i(TAG, "timestampRed = " + timestampRed.size());
+        Log.i(TAG, "pre frequencyTimestamp()");
 
         // Compute gradient of each axis of accelerometer and gyroscope, helpful to detect peaks
         ArrayList<Float> gradXAcc = calculateGradient(xAccRed);
+        Log.i(TAG, "calcolo gradiente");
         ArrayList<Float> gradYAcc = calculateGradient(yAccRed);
         ArrayList<Float> gradZAcc = calculateGradient(zAccRed);
         ArrayList<Float> gradXGyr = calculateGradient(xGyrRed);
@@ -130,13 +138,19 @@ public class StrokeClassification extends Service {
         // Compute the norma of gradient along axis
         ArrayList<Float> accNorm = norm(gradXAcc, gradYAcc, gradZAcc);
         ArrayList<Float> gyrNorm = norm(gradXGyr, gradYGyr, gradZGyr);
+        Log.i(TAG, "norma");
 
         // Detection of strokes, returns a list containing the indexes of peaks (express in sample number)
         ArrayList<Integer> strokeDetectedAcc = strokeDetectionAcc(accNorm, userThreshold, userWindowSize, userMinInterval);
         ArrayList<Integer> strokeDetectedGyr = strokeDetectionGyr(strokeDetectedAcc, gyrNorm);
+        Log.i(TAG, "stroke detected");
 
         // Compute strokes' timestamp using the indexes of peaks
+        Log.i(TAG, "strokeDetectedAcc = " + strokeDetectedAcc.size());
         ArrayList<Long> timestampStrokes = takeStrokeTimestamp(timestampRed, strokeDetectedAcc);
+        Log.i(TAG, String.valueOf(timestampStrokes.size()));
+        assert timestampStrokes!=null;
+        Log.i(TAG, "timestamp stroke");
 
         // Classification of strokes of the session
         int[] totStrokesClassified = new int[4];
@@ -144,8 +158,10 @@ public class StrokeClassification extends Service {
         for(int i=0; i<strokeDetectedAcc.size(); i++){
             // Extract stroke's features
             ArrayList<Float> strokeFeatures = featuresFromPeak(strokeDetectedAcc.get(i), strokeDetectedGyr.get(i), xAccRed, yAccRed, zAccRed, xGyrRed, yGyrRed, zGyrRed);
+            Log.i(TAG, "strokeFeatures");
             // Classify Stroke features
             prediction = classifyStroke(strokeFeatures);
+            Log.i(TAG, "post classifyStroke()");
 
             totStrokesClassified[prediction] += 1;
             strokesPredicted.add(prediction);
@@ -153,12 +169,15 @@ public class StrokeClassification extends Service {
 
         // Extract x and y values from the log
         readLogPositioning(xPositions, yPositions);
+        Log.i(TAG, "readLogPositioning");
 
         // Attach timestamp for each x and y values from the log
         createTimestampPositions(timestampPositions, timestampStrokes, xPositions.size());
+        Log.i(TAG, "createTimestampPositions");
 
         // Attach strokes to the log position computed by uwb sensor
         computeStrokesCoordinates(timestampStrokes, strokesPredicted, xPositions, yPositions, xStrokes, yStrokes, strokeTimestampPositions, timestampPositions, strokesTypeLog);
+        Log.i(TAG, "computeStrokesCoordinates");
 
         // Get today date
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd");
@@ -167,6 +186,7 @@ public class StrokeClassification extends Service {
         // Write the current session info to the progress file
         writeToFile("progress.txt", Arrays.toString(totStrokesClassified)+ ";" +
                 todayDate + ";"+ "02:12" +";" + xStrokes + ";" + yStrokes + ";" + strokesTypeLog + "\n");
+        Log.i(TAG, "writeToFile");
 
         //Log.d(TAG, "Stroke predicted: " + Arrays.toString(totStrokesClassified));
 
@@ -184,17 +204,21 @@ public class StrokeClassification extends Service {
 
     // Creates timestamp for log positions
     private void createTimestampPositions(ArrayList<Long> timestampPositions, ArrayList<Long> timestampStrokes, int lengthPos){
+        Log.i(TAG, "dentro createTimestampPositions");
         Long initialTimestamp = timestampStrokes.get(0);
+        Log.i(TAG, "dentro createTimestampPositions - fatta get");
         for(int i=0; i<lengthPos; i++) {
             // 100000000L because the positions log are sent every 0.1 seconds
+            Log.i(TAG, "dentro createTimestampPositions - fatta pre add");
             timestampPositions.add(initialTimestamp + (i * 100000000L));
+            Log.i(TAG, "dentro createTimestampPositions - fatta post add");
         }
     }
 
 
     private void readLogPositioning(ArrayList<Float> xPositions, ArrayList<Float> yPositions){
         String fileName = "log_position_puliti.txt";
-        File path = context.getFilesDir();
+        File path = context.getExternalFilesDir(null);
         File readFrom = new File(path, fileName);
         int count = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(readFrom))) {

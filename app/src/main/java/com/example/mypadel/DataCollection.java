@@ -133,7 +133,7 @@ public class DataCollection extends Service {
                 //stop chronometer
                 Intent intent1 = new Intent("UpdateGui");
                 intent1.putExtra("Chronometer", "stop");
-                getApplicationContext().sendBroadcast(intent1);
+                context.sendBroadcast(intent1);
 
 
             }
@@ -171,8 +171,10 @@ public class DataCollection extends Service {
             for(int i = 0; i < letti; i+=24){
                 dataType = bb.getFloat();
                 if(dataType == 2.0f){
+                    Log.i(TAG, "ricevuto stop");
                     //end of the session, now we can classify
-                    listen.setValue(false);
+                    //listen.setValue(false);
+                    listen.postValue(false);
                     break;
                 }
                 content.append(dataType);

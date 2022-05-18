@@ -42,23 +42,22 @@ public class SensorHandler extends Service implements SensorEventListener {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if(intent.getAction() != null && intent.getAction().equals("start_sensors")) {
-            Runnable toRun = () -> {
-                sensorSetup();
-                registerSensorListener();
-                Log.i(TAG, "thread creato");
-            };
-            executingThread = new Thread(toRun);
-            executingThread.start();
+            sensorSetup();
+            registerSensorListener();
+            Log.i(TAG, "thread creato");
             Log.i(TAG, "thread partito");
         } else if(intent.getAction() != null && intent.getAction().equals("stop_sensors")) {
-            if(executingThread != null)
-                executingThread.stop();
+            unregisterSensorListener();
             sendPacket(true);
         }
 
         return START_STICKY;
     }
 
+
+    private void unregisterSensorListener(){
+        sm.unregisterListener(this);
+    }
 
     private void sensorSetup(){
         sm = (SensorManager)getSystemService(SENSOR_SERVICE);
@@ -102,7 +101,7 @@ public class SensorHandler extends Service implements SensorEventListener {
     }
 
     private ByteBuffer createByteBuffer(Boolean end){
-        ByteBuffer bb = ByteBuffer.allocate((SIZEOF_LONG + SIZEOF_FLOAT * 4) * dataList.size());
+        ByteBuffer bb = ByteBuffer.allocate((SIZEOF_LONG + SIZEOF_FLOAT * 4) * dataList.size() + SIZEOF_FLOAT);
         for(SensedData sd: dataList){
             if (sd.dataSource == 0)
                 bb.putFloat(0);

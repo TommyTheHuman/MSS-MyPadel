@@ -47,54 +47,58 @@ public class ChannelHandler extends Service {
         super.onCreate();
         //setting the id of the connected smartphone and defining the channel with it
         //setting smartphoneID
-        Task<List<Node>> wearableList = Wearable.getNodeClient(getApplicationContext()).getConnectedNodes();
-        wearableList.addOnCompleteListener(task -> {
-            if(task.isSuccessful()){
-                List<Node> list = task.getResult();
-                boolean trovato = false;
-                if(list.size() == 0){
-                    Log.d(TAG, "No node has been found");
-                }
-                if(list.size() != 1){
-                    Log.i(TAG, "More than 1 node are connected");
-                    for(Node n: list) {
-                        if (!n.getDisplayName().contains("WATCH")) {
-                            smartphoneID = n.getId();
-                            trovato = true;
-                            Log.i(TAG, "Id of the smartphone obtained succesfully: " + n.getDisplayName());
-                            break;
+        Runnable toRun = () -> {
+            Task<List<Node>> wearableList = Wearable.getNodeClient(getApplicationContext()).getConnectedNodes();
+            wearableList.addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    List<Node> list = task.getResult();
+                    boolean trovato = false;
+                    if(list.size() == 0){
+                        Log.d(TAG, "No node has been found");
+                    }
+                    if(list.size() != 1){
+                        Log.i(TAG, "More than 1 node are connected");
+                        for(Node n: list) {
+                            if (!n.getDisplayName().contains("WATCH")) {
+                                smartphoneID = n.getId();
+                                trovato = true;
+                                Log.i(TAG, "Id of the smartphone obtained succesfully: " + n.getDisplayName());
+                                break;
+                            }
                         }
+                        if(!trovato) {
+                            Toast.makeText(getApplicationContext(), "More than 1 node are connected", Toast.LENGTH_SHORT).show();
+                            //button.setEnabled(false);
+                            //button.setText("ERROR");
+                            Intent intent = new Intent(this, MainActivity.class);
+                            intent.setAction("update_button");
+                            intent.putExtra("button", false);
+                            getApplicationContext().sendBroadcast(intent);
+                        }
+                    } else {
+                        Log.d(TAG, "Id of the smartphone obtained succesfully: " + list.get(0).getDisplayName());
+                        smartphoneID = list.get(0).getId();
                     }
-                    if(!trovato) {
-                        Toast.makeText(getApplicationContext(), "More than 1 node are connected", Toast.LENGTH_SHORT).show();
-                        //button.setEnabled(false);
-                        //button.setText("ERROR");
-                        Intent intent = new Intent(this, MainActivity.class);
-                        intent.setAction("update_button");
-                        intent.putExtra("button", false);
+                    //setting up the channel
+                    ChannelClient channelClient = Wearable.getChannelClient(getApplicationContext());
+                    Task<ChannelClient.Channel> ch_task = channelClient.openChannel(smartphoneID, communicationPath);
+                    ch_task.continueWithTask(task2 -> {
+                        channel = task2.getResult();
+                        return channelClient.getOutputStream(channel);
+                    }).addOnSuccessListener(newOutputStream -> {
+                        outputStream = (newOutputStream);
+                        //button.setEnabled(true);
+                        Log.i(TAG, "avvio bottone");
+                        Intent intent = new Intent("update_button");
+                        intent.putExtra("button", true);
                         getApplicationContext().sendBroadcast(intent);
-                    }
-                } else {
-                    Log.d(TAG, "Id of the smartphone obtained succesfully: " + list.get(0).getDisplayName());
-                    smartphoneID = list.get(0).getId();
+                        Log.i(TAG, "Channel established succesfully");
+                    }).addOnFailureListener(e -> Log.i(TAG, "Fallimento: " + e.toString()));
                 }
-                //setting up the channel
-                ChannelClient channelClient = Wearable.getChannelClient(getApplicationContext());
-                Task<ChannelClient.Channel> ch_task = channelClient.openChannel(smartphoneID, communicationPath);
-                ch_task.continueWithTask(task2 -> {
-                    channel = task2.getResult();
-                    return channelClient.getOutputStream(channel);
-                }).addOnSuccessListener(newOutputStream -> {
-                    outputStream = (newOutputStream);
-                    //button.setEnabled(true);
-                    Log.i(TAG, "avvio bottone");
-                    Intent intent = new Intent("update_button");
-                    intent.putExtra("button", true);
-                    getApplicationContext().sendBroadcast(intent);
-                    Log.i(TAG, "Channel established succesfully");
-                }).addOnFailureListener(e -> Log.i(TAG, "Fallimento: " + e.toString()));
-            }
-        });
+            });
+        };
+        Thread run = new Thread(toRun);
+        run.start();
         /*ChannelClient channelClient = Wearable.getChannelClient(getApplicationContext());
         Task<ChannelClient.Channel> ch_task = channelClient.openChannel(smartphoneID, communicationPath);
         ch_task.continueWithTask(task -> {

@@ -1,5 +1,9 @@
 package com.example.mypadel.ui.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -19,6 +23,7 @@ import androidx.navigation.Navigation;
 
 import com.example.mypadel.DataCollection;
 import com.example.mypadel.R;
+import com.example.mypadel.StrokeClassification;
 import com.example.mypadel.databinding.*;
 
 import java.util.ArrayList;
@@ -31,6 +36,10 @@ public class ActivityFragment extends Fragment {
     private Boolean activityState = false;
     private final String fileNameProgress = "progressi.txt";
 
+    private BroadcastReceiver broadcastReceiver;
+    private String TAG = "ActivityFragment";
+    private long sessionDuration;
+
     private FragmentActivityBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -40,7 +49,7 @@ public class ActivityFragment extends Fragment {
 
         binding = FragmentActivityBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-
+        registerBroadcastReceiver();
         return root;
     }
 
@@ -79,5 +88,48 @@ public class ActivityFragment extends Fragment {
 
     public void start_activity(){
 
+    }
+
+    private void registerBroadcastReceiver(){
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.i(TAG, "onReceive della broadcast");
+                if(intent.hasExtra("Chronometer")){
+                    String value = intent.getStringExtra("Chronometer");
+                    if(value.equals("start")){
+                        doResetBaseTime();
+                        Log.i(TAG, "pre start");
+                        chronometer.start();
+                        Log.i(TAG, "post start");
+                    }else{
+                        Log.i(TAG, "dentro fragment");
+                        chronometer.stop();
+                        Log.i(TAG, "cronometro stoppato");
+                        sessionDuration = SystemClock.elapsedRealtime() - chronometer.getBase();
+                        doResetBaseTime();
+                        Log.i(TAG, String.valueOf(sessionDuration));
+
+                        Intent intentClass = new Intent(context, StrokeClassification.class);
+                        Log.i(TAG, "intent creato");
+                        intentClass.setAction("Classify");
+                        intentClass.putExtra("Duration", sessionDuration);
+                        Log.i(TAG, "lancio servizio");
+                        context.startService(intentClass);
+
+                    }
+                }
+            }
+        };
+        requireActivity().registerReceiver(broadcastReceiver, new IntentFilter("UpdateGui"));
+    }
+
+    private void doResetBaseTime()  {
+        // Returns milliseconds since system boot, including time spent in sleep.
+        long elapsedRealtime = SystemClock.elapsedRealtime();
+        // Set the time that the count-up timer is in reference to.
+        Log.i(TAG, "1");
+        chronometer.setBase(elapsedRealtime);
+        Log.i(TAG, "2");
     }
 }
