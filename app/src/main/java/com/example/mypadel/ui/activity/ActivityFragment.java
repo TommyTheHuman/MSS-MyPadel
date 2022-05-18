@@ -12,21 +12,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Chronometer;
-import android.widget.TextClock;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.Navigation;
 
-import com.example.mypadel.DataCollection;
 import com.example.mypadel.R;
 import com.example.mypadel.StrokeClassification;
 import com.example.mypadel.databinding.*;
-
-import java.util.ArrayList;
 
 public class ActivityFragment extends Fragment {
 
