@@ -4,15 +4,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.wearable.ChannelClient;
 import com.google.android.gms.wearable.Node;
@@ -20,7 +14,6 @@ import com.google.android.gms.wearable.Wearable;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 public class ChannelHandler extends Service {
@@ -43,11 +36,10 @@ public class ChannelHandler extends Service {
 
     @Override
     public void onCreate(){
-        Log.i(TAG, "onCreate service");
         super.onCreate();
         //setting the id of the connected smartphone and defining the channel with it
-        //setting smartphoneID
         Runnable toRun = () -> {
+            //setting smartphoneID
             Task<List<Node>> wearableList = Wearable.getNodeClient(getApplicationContext()).getConnectedNodes();
             wearableList.addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
@@ -67,9 +59,8 @@ public class ChannelHandler extends Service {
                             }
                         }
                         if(!trovato) {
-                            Toast.makeText(getApplicationContext(), "More than 1 node are connected", Toast.LENGTH_SHORT).show();
-                            //button.setEnabled(false);
-                            //button.setText("ERROR");
+                            //the button has to be disabled because there are more than 1 node connected
+                            Log.d(TAG, "Unable to detect the unique smartphone");
                             Intent intent = new Intent(this, MainActivity.class);
                             intent.setAction("update_button");
                             intent.putExtra("button", false);
@@ -87,30 +78,17 @@ public class ChannelHandler extends Service {
                         return channelClient.getOutputStream(channel);
                     }).addOnSuccessListener(newOutputStream -> {
                         outputStream = (newOutputStream);
-                        //button.setEnabled(true);
-                        Log.i(TAG, "avvio bottone");
+                        //the button can be enabled because we are ready to send data
                         Intent intent = new Intent("update_button");
                         intent.putExtra("button", true);
                         getApplicationContext().sendBroadcast(intent);
                         Log.i(TAG, "Channel established succesfully");
-                    }).addOnFailureListener(e -> Log.i(TAG, "Fallimento: " + e.toString()));
+                    }).addOnFailureListener(e -> Log.i(TAG, "Task failure: " + e.toString()));
                 }
             });
         };
         Thread run = new Thread(toRun);
         run.start();
-        /*ChannelClient channelClient = Wearable.getChannelClient(getApplicationContext());
-        Task<ChannelClient.Channel> ch_task = channelClient.openChannel(smartphoneID, communicationPath);
-        ch_task.continueWithTask(task -> {
-            channel = task.getResult();
-            return channelClient.getOutputStream(channel);
-        }).addOnSuccessListener(newOutputStream -> {
-            Log.i(TAG, "successo");
-            outputStream = (newOutputStream);
-            //button.setEnabled(true);
-            Log.i(TAG, "Successo");
-        }).addOnFailureListener(e -> Log.i(TAG, "Fallimento: " + e.toString()));*/
-
     }
 
     @Override
@@ -128,36 +106,6 @@ public class ChannelHandler extends Service {
         }
         return START_STICKY;
     }
-
-    /*private void setSmartphoneID(){
-        //trovare id dei nodi
-        Task<List<Node>> wearableList = Wearable.getNodeClient(getApplicationContext()).getConnectedNodes();
-        wearableList.addOnCompleteListener(task -> {
-            if(task.isSuccessful()){
-                List<Node> list = task.getResult();
-                boolean trovato = false;
-                if(list.size() != 1){
-                    Log.i(TAG, "More than 1 node are connected");
-                    for(Node n: list) {
-                        if (!n.getDisplayName().contains("WATCH")) {
-                            smartphoneID = n.getId();
-                            trovato = true;
-                            Log.i(TAG, "Id of the smartphone obtained succesfully");
-                            break;
-                        }
-                    }
-                    if(!trovato) {
-                        Toast.makeText(getApplicationContext(), "More than 1 node are connected", Toast.LENGTH_SHORT).show();
-                        //button.setEnabled(false);
-                        //button.setText("ERROR");
-                    }
-                } else {
-                    Log.d(TAG, "Id of the smartphone obtained succesfully");
-                    smartphoneID = list.get(0).getId();
-                }
-            }
-        });
-    }*/
 
     private void sendPacket(byte[] tosend) {
         try {

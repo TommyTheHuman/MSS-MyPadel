@@ -8,11 +8,9 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +21,6 @@ public class SensorHandler extends Service implements SensorEventListener {
     private SensorManager sm;
     private Sensor accelerometer;
     private Sensor gyroscope;
-    private Thread executingThread = null;
 
     private final long FIVE_SECONDS_IN_NANOS = 5000000000L;
     private final int SIZEOF_LONG = 8;
@@ -44,8 +41,6 @@ public class SensorHandler extends Service implements SensorEventListener {
         if(intent.getAction() != null && intent.getAction().equals("start_sensors")) {
             sensorSetup();
             registerSensorListener();
-            Log.i(TAG, "thread creato");
-            Log.i(TAG, "thread partito");
         } else if(intent.getAction() != null && intent.getAction().equals("stop_sensors")) {
             if(sm != null)
                 unregisterSensorListener();
@@ -64,8 +59,6 @@ public class SensorHandler extends Service implements SensorEventListener {
         sm = (SensorManager)getSystemService(SENSOR_SERVICE);
         accelerometer = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         gyroscope = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        Log.i(TAG, "accelerometer max FIFO: " + accelerometer.getFifoMaxEventCount());
-        Log.i(TAG, "gyroscope max FIFO: " + gyroscope.getFifoMaxEventCount());
     }
 
     private void registerSensorListener(){
@@ -81,9 +74,6 @@ public class SensorHandler extends Service implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        Log.i(TAG, String.valueOf(sensorEvent.timestamp) + ": ");
-        for (float f : sensorEvent.values)
-            Log.i(TAG, String.valueOf(f));
         if(sensorEvent.sensor.getType() != Sensor.TYPE_GYROSCOPE && sensorEvent.sensor.getType() != Sensor.TYPE_ACCELEROMETER)
             return;
         dataList.add(new SensedData(sensorEvent));
