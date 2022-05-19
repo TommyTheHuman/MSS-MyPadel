@@ -10,7 +10,6 @@
         android:id="@+id/chronometer"
         android:layout_width="244dp"
         android:layout_height="120dp"
-        android:layout_marginBottom="257dp"
         android:textAlignment="center"
         android:textColor="#050505"
         android:textSize="20sp"
@@ -22,10 +21,11 @@
         android:id="@+id/textView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="28dp"
         android:layout_marginTop="104dp"
         android:text="Start activity on your smartwatch"
+        android:textAlignment="center"
         android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

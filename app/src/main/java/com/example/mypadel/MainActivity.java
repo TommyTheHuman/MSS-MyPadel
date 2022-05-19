@@ -64,6 +64,10 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, StrokeClassification.class);
         intent.setAction("stopClassify");
         startService(intent);
+
+        intent = new Intent(this, DataCollection.class);
+        intent.setAction("stop_recording");
+        startService(intent);
     }
 
 

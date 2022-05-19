@@ -178,7 +178,9 @@ public class StrokeClassification extends Service {
         writeToFile("progress.txt", Arrays.toString(totStrokesClassified)+ ";" +
                 todayDate + ";"+ dur +";" + xStrokes + ";" + yStrokes + ";" + strokesTypeLog + "\n");
 
-
+        File path = context.getExternalFilesDir(null);
+        File readFrom = new File(path, "data_collected.txt");
+        readFrom.delete();
     }
 
 
@@ -204,7 +206,7 @@ public class StrokeClassification extends Service {
 
 
     private void readLogPositioning(ArrayList<Float> xPositions, ArrayList<Float> yPositions){
-        String fileName = "log_position_puliti.txt";
+        String fileName = "log_position.txt";
         File path = context.getExternalFilesDir(null);
         File readFrom = new File(path, fileName);
         int count = 0;

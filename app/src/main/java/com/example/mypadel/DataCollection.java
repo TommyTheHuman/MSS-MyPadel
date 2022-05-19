@@ -74,6 +74,8 @@ public class DataCollection extends Service {
 
         if(intent.getAction() != null && intent.getAction().equals("start_recording")) {
             startRecording();
+        } else if(intent.getAction() != null && intent.getAction().equals("stop_recording")){
+            stopSelf();
         }
 
         return START_STICKY;

@@ -110,6 +110,9 @@ public class ProfileFragment extends Fragment {
     private void readFromFile(String fileName, TextView name, Spinner level, TextView height, TextView weight) {
         File path = context.getExternalFilesDir(null);
         File readFrom = new File(path, fileName);
+        if(!readFrom.exists()){
+            return;
+        }
 
         try (BufferedReader br = new BufferedReader(new FileReader(readFrom))) {
             String line;

@@ -79,6 +79,9 @@ public class ProgressFragment extends Fragment {
         File path = context.getExternalFilesDir(null);
         File readFrom = new File(path, fileName);
         ArrayList<String> oldSessions = new ArrayList<String>();
+        if(!readFrom.exists()){
+            return oldSessions;
+        }
         try (BufferedReader br = new BufferedReader(new FileReader(readFrom))) {
             String line;
             while ((line = br.readLine()) != null) {
