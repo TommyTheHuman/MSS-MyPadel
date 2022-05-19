@@ -8,52 +8,26 @@
 
     <ImageView
         android:id="@+id/imageView2"
-        android:layout_width="141dp"
-        android:layout_height="141dp"
+        android:layout_width="151dp"
+        android:layout_height="151dp"
         android:layout_marginTop="24dp"
-        android:layout_marginBottom="67dp"
+        android:layout_marginBottom="49dp"
         android:background="#9C74E3"
         android:contentDescription="profile image"
         android:src="@drawable/ic_baseline_person_24"
-        app:layout_constraintBottom_toTopOf="@+id/name"
+        app:layout_constraintBottom_toTopOf="@+id/name_filled"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/textInputLayout4"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="1dp"
-        android:layout_marginEnd="1dp"
-        android:layout_marginBottom="129dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/weight">
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/surname_filled"
-        android:layout_width="0dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="72dp"
-        android:layout_marginEnd="22dp"
-        android:layout_marginBottom="71dp"
-        android:hint="Rossi"
-        app:layout_constraintBottom_toTopOf="@+id/height"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/surname"
-        app:layout_constraintTop_toTopOf="@+id/name" />
-
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/weight_filled"
-        android:layout_width="0dp"
-        android:layout_height="46dp"
-        android:layout_marginTop="39dp"
-        android:layout_marginEnd="20dp"
+        android:layout_width="230dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="18dp"
+        android:layout_marginBottom="183dp"
         android:hint="75"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/weight"
         app:layout_constraintTop_toBottomOf="@+id/height_filled" />
@@ -64,23 +38,21 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="38dp"
         android:layout_marginEnd="71dp"
-        android:layout_marginBottom="71dp"
+        android:layout_marginBottom="8dp"
         android:text="Name"
         android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@+id/surname"
+        app:layout_constraintBottom_toBottomOf="@+id/name_filled"
         app:layout_constraintEnd_toStartOf="@+id/name_filled"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView2" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/name_filled"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="49dp"
-        android:layout_marginEnd="25dp"
-        android:layout_marginBottom="42dp"
+        android:layout_width="230dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="65dp"
         android:hint="Mario"
-        app:layout_constraintBottom_toTopOf="@+id/surname_filled"
+        app:layout_constraintBottom_toTopOf="@+id/spinner"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/name"
         app:layout_constraintTop_toBottomOf="@+id/imageView2" />
@@ -90,50 +62,63 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="36dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="32dp"
-        android:layout_marginBottom="67dp"
         android:text="Height (cm)"
         android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@+id/weight"
         app:layout_constraintEnd_toStartOf="@+id/height_filled"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/surname" />
+        app:layout_constraintTop_toTopOf="@+id/height_filled" />
 
     <TextView
-        android:id="@+id/surname"
+        android:id="@+id/level"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="36dp"
-        android:layout_marginEnd="52dp"
-        android:layout_marginBottom="75dp"
-        android:text="Surname"
+        android:layout_marginStart="66dp"
+        android:layout_marginEnd="79dp"
+        android:layout_marginBottom="8dp"
+        android:text="Level"
         android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@+id/height"
-        app:layout_constraintEnd_toStartOf="@+id/surname_filled"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/name" />
+        app:layout_constraintBottom_toBottomOf="@+id/spinner"
+        app:layout_constraintEnd_toStartOf="@+id/spinner"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/weight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="38dp"
+        android:layout_marginStart="37dp"
+        android:layout_marginTop="9dp"
         android:layout_marginEnd="44dp"
-        android:layout_marginBottom="77dp"
         android:text="Weight (kg)"
-        app:layout_constraintBottom_toTopOf="@+id/textInputLayout4"
+        android:textSize="16sp"
         app:layout_constraintEnd_toStartOf="@+id/weight_filled"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/height" />
+        app:layout_constraintTop_toTopOf="@+id/weight_filled" />
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/height_filled"
-        android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_width="230dp"
+        android:layout_height="40dp"
         android:layout_marginEnd="20dp"
+        android:layout_marginBottom="39dp"
         android:hint="183 "
-        app:layout_constraintBaseline_toBaselineOf="@+id/height"
+        app:layout_constraintBottom_toTopOf="@+id/weight_filled"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/height" />
+        app:layout_constraintStart_toEndOf="@+id/height"
+        app:layout_constraintTop_toBottomOf="@+id/spinner" />
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="200dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="89dp"
+        android:layout_marginBottom="56dp"
+        android:background="@android:drawable/btn_dropdown"
+        android:spinnerMode="dropdown"
+        app:layout_constraintBottom_toTopOf="@+id/height_filled"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/level"
+        app:layout_constraintTop_toBottomOf="@+id/name_filled" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
