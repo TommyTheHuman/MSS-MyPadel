@@ -4,6 +4,7 @@ package com.example.mypadel;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -14,6 +15,8 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.mypadel.databinding.ActivityMainBinding;
+
+import java.util.Arrays;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -26,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = getApplicationContext();
+        int[] totStrokesClassified = new int[4];
+        Log.d(TAG, Arrays.toString(totStrokesClassified));
 
         com.example.mypadel.databinding.ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());

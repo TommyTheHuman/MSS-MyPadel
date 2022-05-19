@@ -1,5 +1,6 @@
 package com.example.mypadel;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -137,6 +138,12 @@ public class StrokeClassification extends Service {
         // Compute strokes' timestamp using the indexes of peaks
         ArrayList<Long> timestampStrokes = takeStrokeTimestamp(timestampRed, strokeDetectedAcc);
 
+        // Check if no strokes are detected
+        if (timestampStrokes.size() == 0){
+            Log.i(TAG, "There are no strokes detected!!");
+            return;
+        }
+
         // Classification of strokes of the session
         // 0 --> Forehand
         // 1 --> Backhand
@@ -167,7 +174,7 @@ public class StrokeClassification extends Service {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         String todayDate = dtf.format(LocalDateTime.now());
 
-        String dur = String.format("%02d:%02d:%02d",
+        @SuppressLint("DefaultLocale") String dur = String.format("%02d:%02d:%02d",
                 TimeUnit.MILLISECONDS.toHours(sessionDuration),
                 TimeUnit.MILLISECONDS.toMinutes(sessionDuration) -
                         TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(sessionDuration)), // The change is in this line
@@ -184,6 +191,48 @@ public class StrokeClassification extends Service {
     }
 
 
+    // Classify the stroke with TensorFlowLite model
+    private int classifyStroke(ArrayList<Float> features){
+        try {
+            TfliteModel model = TfliteModel.newInstance(context);
+
+            // Creates inputs for reference.
+            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 150}, DataType.FLOAT32);
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(SIZEOF_FLOAT * features.size());
+            byteBuffer.order(ByteOrder.nativeOrder());
+            for(int i=0; i<features.size(); i++){
+                byteBuffer.putFloat(features.get(i));
+            }
+            inputFeature0.loadBuffer(byteBuffer);
+
+            // Runs model inference and gets result.
+            TfliteModel.Outputs outputs = model.process(inputFeature0);
+            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+
+            // Takes the output with biggest confidence
+            float[] confidence = outputFeature0.getFloatArray();
+            float maxConf = 0.0f;
+            int maxIndex = 0;
+            for(int i=0; i<confidence.length; i++){
+                if(confidence[i] > maxConf){
+                    maxConf = confidence[i];
+                    maxIndex = i;
+                }
+            }
+
+            // Releases model resources if no longer used.
+            model.close();
+
+            // Returns the class with highest confidence
+            return maxIndex;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.d(TAG, "Error in classification.");
+        }
+        return -1;
+    }
+
     private ArrayList<Long> takeStrokeTimestamp(ArrayList<Long> allTimestamp, ArrayList<Integer> indexStrokes){
         ArrayList<Long> temp = new ArrayList<>();
         for(int i=0; i<indexStrokes.size(); i++){
@@ -194,8 +243,6 @@ public class StrokeClassification extends Service {
 
     // Creates timestamp for log positions
     private void createTimestampPositions(ArrayList<Long> timestampPositions, ArrayList<Long> timestampStrokes, int lengthPos){
-        if(timestampStrokes.size() == 0)
-            Log.i(TAG,"There are no strokes detected!!");
 
         Long initialTimestamp = timestampStrokes.get(0);
         for(int i=0; i<lengthPos; i++) {
@@ -232,6 +279,7 @@ public class StrokeClassification extends Service {
         Long lastTimestampPositions = timestampPositions.get(timestampPositions.size()-1);
         int indexClosest = 0;
 
+        // Associate each timestamp of the strokes to the nearest timestamp of the log
         for(int i=0; i<timestampStrokes.size(); i++){
             if(timestampStrokes.get(i) > lastTimestampPositions){
                 Log.d(TAG, "Log positioning shorter than match duration");
@@ -259,43 +307,6 @@ public class StrokeClassification extends Service {
         return index;
     }
 
-    private int classifyStroke(ArrayList<Float> features){
-        try {
-            TfliteModel model = TfliteModel.newInstance(context);
-
-            // Creates inputs for reference.
-            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 150}, DataType.FLOAT32);
-            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(SIZEOF_FLOAT * features.size());
-            byteBuffer.order(ByteOrder.nativeOrder());
-
-            for(int i=0; i<features.size(); i++){
-                byteBuffer.putFloat(features.get(i));
-            }
-            inputFeature0.loadBuffer(byteBuffer);
-
-            // Runs model inference and gets result.
-            TfliteModel.Outputs outputs = model.process(inputFeature0);
-            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
-
-            float[] confidence = outputFeature0.getFloatArray();
-            float maxConf = 0.0f;
-            int maxIndex = 0;
-            for(int i=0; i<confidence.length; i++){
-                if(confidence[i] > maxConf){
-                    maxConf = confidence[i];
-                    maxIndex = i;
-                }
-            }
-            String[] classes = {"Forehand", "Backhand", "Smash", "Lob"};
-
-            // Releases model resources if no longer used.
-            model.close();
-            return maxIndex;
-        } catch (IOException e) {
-            // TODO Handle the exception
-        }
-        return -1;
-    }
 
     private void writeToFile(String fileName, String content){
         try {
@@ -304,13 +315,14 @@ public class StrokeClassification extends Service {
             fw.append(content);
             fw.close();
 
-            Toast.makeText(context, "Wrote to file " + fileName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Session saved in " + fileName, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
 
+    // Read a session from file
     private void readSession(String fileName, ArrayList<Float> xAcc, ArrayList<Float> yAcc,
                              ArrayList<Float> zAcc, ArrayList<Float> xGyr, ArrayList<Float> yGyr, ArrayList<Float> zGyr, ArrayList<Long> timestamp) {
         File path = context.getExternalFilesDir(null);
@@ -331,8 +343,6 @@ public class StrokeClassification extends Service {
                     zGyr.add(Float.parseFloat(parts[4]));
                 }
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -137,7 +137,6 @@ public class DataCollection extends Service {
                 intent1.putExtra("Chronometer", "stop");
                 context.sendBroadcast(intent1);
 
-
             }
         });
         //CHANGE
