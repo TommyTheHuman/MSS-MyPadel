@@ -86,6 +86,11 @@ public class DataCollection extends Service {
                 Intent intent1 = new Intent("UpdateGui");
                 intent1.putExtra("Chronometer", "stop");
                 context.sendBroadcast(intent1);
+
+                //DISABLING INPUT
+                intent1 = new Intent("not_touchable");
+                intent1.putExtra("touchable", true);
+                context.sendBroadcast(intent1);
             }
         });
     }
@@ -107,6 +112,11 @@ public class DataCollection extends Service {
                 intent.putExtra("Chronometer", "start");
                 getApplicationContext().sendBroadcast(intent);
                 firstTime = false;
+
+                //DISABLING INPUT
+                intent = new Intent("not_touchable");
+                intent.putExtra("touchable", false);
+                getApplicationContext().sendBroadcast(intent);
             }
             ByteBuffer bb = ByteBuffer.wrap(array);
             float dataType;

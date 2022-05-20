@@ -1,10 +1,15 @@
 package com.example.mypadel;
 
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
+import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -24,6 +29,9 @@ public class MainActivity extends AppCompatActivity {
     private static Context context;
     private final String TAG = "MainActivity";
     private long sessionDuration = 0l;
+    //DISABLING INPUT
+    private BroadcastReceiver broadcastReceiver;
+    private static MainActivity instance;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,8 +63,56 @@ public class MainActivity extends AppCompatActivity {
         intent.setAction("start_recording");
         startService(intent);
 
-        //registerBroadcastReceiver();
+        //DISABLING TOUCH INPUT
+        registerBroadcastReceiver();
+        instance = this;
     }
+
+    //DISABLING INPUT
+    private static MainActivity getInstance(){
+        return instance;
+    }
+
+    private void registerBroadcastReceiver(){
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if(intent.hasExtra("touchable")){
+                    WindowManager.LayoutParams params = MainActivity.getInstance().getWindow().getAttributes();
+                    boolean touchable = intent.getBooleanExtra("touchable", true);
+                    if(touchable){
+                        MainActivity.getInstance().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                        params.screenBrightness = -1f;
+                    } else {
+                        Toast.makeText(context, "You are playing padel!", Toast.LENGTH_SHORT).show();
+                        params.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+                        params.screenBrightness = 0f;
+                    }
+                    MainActivity.getInstance().getWindow().setAttributes(params);
+                }
+            }
+        };
+        registerReceiver(broadcastReceiver, new IntentFilter("not_touchable"));
+    }
+    /*
+    private void disableTouch(SensorEvent event) {
+        if(event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
+            WindowManager.LayoutParams params = MainActivity.getInstance().getWindow().getAttributes();
+
+            if(event.values[0] == 0.0) {
+                Log.d(TAG, "Screen off");
+                params.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+                MainActivity.getInstance().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                params.screenBrightness = 0f;
+            } else {
+                Log.d(TAG, "Screen on");
+                MainActivity.getInstance().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+                params.screenBrightness = -1f;
+            }
+            MainActivity.getInstance().getWindow().setAttributes(params);
+        }
+    }*/
 
     public static Context getContext(){
         return context;
