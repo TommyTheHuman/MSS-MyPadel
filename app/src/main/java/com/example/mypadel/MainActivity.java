@@ -94,25 +94,6 @@ public class MainActivity extends AppCompatActivity {
         };
         registerReceiver(broadcastReceiver, new IntentFilter("not_touchable"));
     }
-    /*
-    private void disableTouch(SensorEvent event) {
-        if(event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
-            WindowManager.LayoutParams params = MainActivity.getInstance().getWindow().getAttributes();
-
-            if(event.values[0] == 0.0) {
-                Log.d(TAG, "Screen off");
-                params.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
-                MainActivity.getInstance().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                params.screenBrightness = 0f;
-            } else {
-                Log.d(TAG, "Screen on");
-                MainActivity.getInstance().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-                params.screenBrightness = -1f;
-            }
-            MainActivity.getInstance().getWindow().setAttributes(params);
-        }
-    }*/
 
     public static Context getContext(){
         return context;

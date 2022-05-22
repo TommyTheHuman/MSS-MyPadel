@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+// Shows the history of old sessions recorded
 public class ProgressFragment extends Fragment {
 
     private FragmentProgressBinding binding;
